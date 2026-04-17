@@ -1,136 +1,248 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Task Tracker{% endblock %}</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.4rem;
-        }
-        .navbar {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .card {
-            border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-radius: 12px;
-        }
-        .card-header {
-            border-radius: 12px 12px 0 0 !important;
-            font-weight: 600;
-        }
-        .badge {
-            font-size: 0.8em;
-            padding: 0.4em 0.7em;
-            border-radius: 6px;
-        }
-        .badge-secondary { background-color: #6c757d; }
-        .badge-primary { background-color: #007bff; }
-        .badge-success { background-color: #28a745; }
-        .badge-info { background-color: #17a2b8; }
-        .badge-warning { background-color: #ffc107; color: #212529; }
-        .badge-danger { background-color: #dc3545; }
-        .stat-card {
-            border-radius: 12px;
-            padding: 1.2rem;
-            text-align: center;
-            color: white;
-            margin-bottom: 1rem;
-        }
-        .stat-card .number { font-size: 2rem; font-weight: 700; }
-        .stat-card .label { font-size: 0.85rem; opacity: 0.9; }
-        .btn { border-radius: 8px; }
-        .priority-high { border-left: 4px solid #dc3545 !important; }
-        .priority-medium { border-left: 4px solid #ffc107 !important; }
-        .priority-low { border-left: 4px solid #17a2b8 !important; }
-        .task-row:hover { background-color: #f1f3f5; transition: 0.2s; }
-        .filter-card { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}TaskFlow{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base: #0d0d0f;
+  --bg-surface: #16161a;
+  --bg-elevated: #1e1e24;
+  --bg-hover: #252530;
+  --bg-active: #2e2e3a;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.15);
+  --text-primary: #e8e8f0;
+  --text-secondary: #8b8b9e;
+  --text-muted: #55555f;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-soft: rgba(124,58,237,0.15);
+  --blue: #3b82f6;
+  --blue-soft: rgba(59,130,246,0.15);
+  --green: #22c55e;
+  --green-soft: rgba(34,197,94,0.15);
+  --amber: #f59e0b;
+  --amber-soft: rgba(245,158,11,0.15);
+  --red: #ef4444;
+  --red-soft: rgba(239,68,68,0.15);
+  --sidebar-w: 220px;
+  --radius: 8px;
+  --radius-sm: 5px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg-base); color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.5; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+
+/* LAYOUT */
+.app { display: flex; height: 100vh; overflow: hidden; }
+.sidebar { width: var(--sidebar-w); background: var(--bg-surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { height: 52px; background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 12px; flex-shrink: 0; }
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+
+/* SIDEBAR */
+.sidebar-logo { padding: 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+.logo-icon { width: 30px; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.logo-icon svg { width: 16px; height: 16px; fill: white; }
+.logo-text { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+
+.sidebar-section { padding: 12px 8px 4px; }
+.sidebar-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 0 8px; margin-bottom: 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 13.5px; transition: background 0.15s, color 0.15s; cursor: pointer; }
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active { background: var(--accent-soft); color: #a78bfa; }
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active svg { opacity: 1; }
+
+.sidebar-user { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.user-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white; flex-shrink: 0; }
+.user-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.user-role { font-size: 11px; color: var(--text-muted); }
+
+/* TOPBAR */
+.topbar-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; border: 1px solid transparent; transition: all 0.15s; line-height: 1; }
+.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border-strong); }
+.btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+.btn-danger { background: var(--red-soft); color: var(--red); border-color: transparent; }
+.btn-danger:hover { background: var(--red); color: white; }
+.btn svg { width: 14px; height: 14px; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
+.badge-todo { background: var(--bg-active); color: var(--text-secondary); }
+.badge-in_progress { background: var(--blue-soft); color: #60a5fa; }
+.badge-review { background: var(--amber-soft); color: #fbbf24; }
+.badge-done { background: var(--green-soft); color: #4ade80; }
+.badge-low { background: var(--bg-active); color: var(--text-secondary); }
+.badge-medium { background: var(--blue-soft); color: #60a5fa; }
+.badge-high { background: var(--amber-soft); color: #fbbf24; }
+.badge-urgent { background: var(--red-soft); color: #f87171; }
+.badge-overdue { background: var(--red-soft); color: #f87171; }
+
+/* PRIORITY DOT */
+.p-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.p-dot-low { background: #555; }
+.p-dot-medium { background: var(--blue); }
+.p-dot-high { background: var(--amber); }
+.p-dot-urgent { background: var(--red); }
+
+/* CARDS */
+.card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.card-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+/* FORMS */
+.cu-input, .cu-select, .cu-textarea {
+  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary);
+  padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13.5px; font-family: inherit;
+  transition: border-color 0.15s;
+}
+.cu-input:focus, .cu-select:focus, .cu-textarea:focus { outline: none; border-color: var(--accent); }
+.cu-input::placeholder { color: var(--text-muted); }
+.cu-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8b9e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+.cu-select option { background: var(--bg-elevated); }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.form-error { font-size: 12px; color: var(--red); margin-top: 4px; }
+.cu-input-sm { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-family: inherit; }
+.cu-input-sm:focus { outline: none; border-color: var(--accent); }
+.cu-select-sm { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-family: inherit; appearance: none; }
+.cu-checkbox-group { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.cu-checkbox-group li { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }
+.cu-checkbox-group input { accent-color: var(--accent); }
+
+/* TAG PILL */
+.tag-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+
+/* TABLE */
+.cu-table { width: 100%; border-collapse: collapse; }
+.cu-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.cu-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.cu-table tr:last-child td { border-bottom: none; }
+.cu-table tr:hover td { background: var(--bg-hover); }
+.cu-table a { color: var(--text-primary); }
+.cu-table a:hover { color: #a78bfa; }
+
+/* ALERTS */
+.alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 12px; }
+.alert-success { background: var(--green-soft); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+.alert-error { background: var(--red-soft); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+
+/* STAT CARDS */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.stat-num { font-size: 26px; font-weight: 600; color: var(--text-primary); }
+.stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.stat-dot { width: 8px; height: 8px; border-radius: 50%; margin-bottom: 10px; }
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+.empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
+.empty-state p { font-size: 14px; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-active); border-radius: 10px; }
+
+/* MESSAGES TOASTS */
+.toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+</style>
+{% block extra_css %}{% endblock %}
 </head>
 <body>
+<div class="app">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        <a class="navbar-brand" href="{% url 'tasks:task_list' %}">
-            <i class="fas fa-tasks mr-2"></i>Task Tracker
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mr-auto">
-                {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'tasks:task_list' %}">
-                        <i class="fas fa-list mr-1"></i>Мої задачі
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'tasks:task_create' %}">
-                        <i class="fas fa-plus mr-1"></i>Нова задача
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-            <ul class="navbar-nav">
-                {% if user.is_authenticated %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="userMenu" data-toggle="dropdown">
-                        <i class="fas fa-user-circle mr-1"></i>{{ user.username }}
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right">
-                        {% if user.is_staff %}
-                        <a class="dropdown-item" href="/admin/">
-                            <i class="fas fa-cog mr-2"></i>Адмін-панель
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        {% endif %}
-                        <a class="dropdown-item" href="{% url 'logout' %}">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Вийти
-                        </a>
-                    </div>
-                </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">
-                        <i class="fas fa-sign-in-alt mr-1"></i>Увійти
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="logo-text">TaskFlow</span>
     </div>
-</nav>
 
-<div class="container mt-4">
-    {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="close" data-dismiss="alert">
-                <span>&times;</span>
-            </button>
-        </div>
-        {% endfor %}
+    {% if user.is_authenticated %}
+    <div class="sidebar-section">
+      <div class="sidebar-label">Головне</div>
+      <a href="{% url 'tasks:dashboard' %}" class="nav-item {% block nav_dashboard %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Дашборд
+      </a>
+      <a href="{% url 'tasks:task_list' %}" class="nav-item {% block nav_list %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Список задач
+      </a>
+      <a href="{% url 'tasks:kanban' %}" class="nav-item {% block nav_kanban %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+        Kanban дошка
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Теги</div>
+      <a href="{% url 'tasks:tag_list' %}" class="nav-item {% block nav_tags %}{% endblock %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Управління тегами
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Дії</div>
+      <a href="{% url 'tasks:task_create' %}" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Нова задача
+      </a>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ user.username|first|upper }}</div>
+      <div>
+        <div class="user-name">{{ user.username }}</div>
+        <a href="{% url 'logout' %}" style="font-size:11px; color:var(--text-muted);">Вийти</a>
+      </div>
+    </div>
     {% endif %}
+  </aside>
 
-    {% block content %}{% endblock %}
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">{% block page_title %}TaskFlow{% endblock %}</span>
+      <div class="topbar-actions">
+        {% block topbar_actions %}{% endblock %}
+        {% if user.is_authenticated %}
+        <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Задача
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="content">
+      {% if messages %}
+      <div class="toast-container">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
 </div>
-
-<footer class="text-center text-muted py-4 mt-5">
-    <small>Task Tracker &copy; 2024</small>
-</footer>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

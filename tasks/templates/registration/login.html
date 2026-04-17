@@ -1,41 +1,59 @@
-{% extends 'tasks/base.html' %}
-
-{% block title %}Вхід — Task Tracker{% endblock %}
-
-{% block content %}
-<div class="row">
-    <div class="col-md-4 offset-md-4">
-        <div class="card mt-4">
-            <div class="card-header bg-primary text-white text-center">
-                <h4 class="mb-0"><i class="fas fa-sign-in-alt mr-2"></i>Вхід</h4>
-            </div>
-            <div class="card-body p-4">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Логін</label>
-                        <input type="text" name="username" class="form-control" autofocus required placeholder="Введіть логін">
-                    </div>
-                    <div class="form-group">
-                        <label class="font-weight-bold">Пароль</label>
-                        <input type="password" name="password" class="form-control" required placeholder="Введіть пароль">
-                    </div>
-                    {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle mr-1"></i>Невірний логін або пароль.
-                    </div>
-                    {% endif %}
-                    <button type="submit" class="btn btn-primary btn-block">
-                        <i class="fas fa-sign-in-alt mr-1"></i>Увійти
-                    </button>
-                </form>
-                <hr>
-                <p class="text-center mb-0 text-muted small">
-                    Ще немає акаунту?
-                    <a href="{% url 'tasks:register' %}" class="text-success font-weight-bold">Зареєструватися</a>
-                </p>
-            </div>
-        </div>
-    </div>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Вхід — TaskFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0f;color:#e8e8f0;font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.box{width:100%;max-width:380px;padding:20px;}
+.logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:28px;}
+.logo-icon{width:36px;height:36px;background:#7c3aed;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:18px;height:18px;fill:white;}
+.logo-text{font-size:20px;font-weight:600;}
+.card{background:#16161a;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:24px;}
+.card h2{font-size:16px;font-weight:600;margin-bottom:20px;color:#e8e8f0;}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:11px;font-weight:600;color:#55555f;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.cu-input{width:100%;background:#1e1e24;border:1px solid rgba(255,255,255,0.08);color:#e8e8f0;padding:9px 12px;border-radius:6px;font-size:13.5px;font-family:inherit;transition:border-color .15s;}
+.cu-input:focus{outline:none;border-color:#7c3aed;}
+.cu-input::placeholder{color:#55555f;}
+.btn-primary{width:100%;background:#7c3aed;color:white;border:none;padding:10px;border-radius:6px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;margin-top:4px;transition:background .15s;}
+.btn-primary:hover{background:#6d28d9;}
+.error{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);border-radius:6px;padding:9px 12px;font-size:13px;margin-bottom:12px;}
+.footer-link{text-align:center;margin-top:16px;font-size:12px;color:#55555f;}
+.footer-link a{color:#a78bfa;}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+    <span class="logo-text">TaskFlow</span>
+  </div>
+  <div class="card">
+    <h2>Увійти до акаунту</h2>
+    {% if form.errors %}
+    <div class="error">Невірний логін або пароль</div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Логін</label>
+        <input type="text" name="username" class="cu-input" autofocus placeholder="Введіть логін">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Пароль</label>
+        <input type="password" name="password" class="cu-input" placeholder="Введіть пароль">
+      </div>
+      <button type="submit" class="btn-primary">Увійти</button>
+    </form>
+  </div>
+  <div class="footer-link">
+    Ще немає акаунту? <a href="{% url 'tasks:register' %}">Зареєструватися</a>
+  </div>
 </div>
-{% endblock %}
+</body>
+</html>

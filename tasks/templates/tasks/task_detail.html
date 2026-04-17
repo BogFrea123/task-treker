@@ -1,87 +1,72 @@
 {% extends 'tasks/base.html' %}
+{% block title %}{{ task.title }} — TaskFlow{% endblock %}
+{% block page_title %}{{ task.title|truncatechars:40 }}{% endblock %}
 
-{% block title %}{{ task.title }} — Task Tracker{% endblock %}
+{% block topbar_actions %}
+{% if task.owner == request.user %}
+<a href="{% url 'tasks:task_update' task.pk %}" class="btn btn-ghost">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+  Редагувати
+</a>
+<a href="{% url 'tasks:task_delete' task.pk %}" class="btn btn-danger">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+  Видалити
+</a>
+{% endif %}
+{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
+<div style="max-width:720px;">
+  <a href="{% url 'tasks:task_list' %}" style="font-size:12px; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px; margin-bottom:16px;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Назад до списку
+  </a>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="{% url 'tasks:task_list' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-arrow-left mr-1"></i>До списку
-            </a>
-            {% if task.owner == request.user %}
-            <div>
-                <a href="{% url 'tasks:task_update' task.pk %}" class="btn btn-warning btn-sm mr-2">
-                    <i class="fas fa-edit mr-1"></i>Редагувати
-                </a>
-                <a href="{% url 'tasks:task_delete' task.pk %}" class="btn btn-danger btn-sm">
-                    <i class="fas fa-trash mr-1"></i>Видалити
-                </a>
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">{{ task.title }}</h4>
-            </div>
-            <div class="card-body">
-
-                <div class="row mb-3">
-                    <div class="col-sm-6">
-                        <span class="text-muted small">СТАТУС</span><br>
-                        <span class="badge badge-lg {{ task.get_status_badge_class }}" style="font-size:0.95em; padding: 0.5em 1em;">
-                            {{ task.get_status_display }}
-                        </span>
-                    </div>
-                    <div class="col-sm-6">
-                        <span class="text-muted small">ПРІОРИТЕТ</span><br>
-                        <span class="badge badge-lg {{ task.get_priority_badge_class }}" style="font-size:0.95em; padding: 0.5em 1em;">
-                            {{ task.get_priority_display }}
-                        </span>
-                    </div>
-                </div>
-
-                <hr>
-
-                <div class="mb-3">
-                    <span class="text-muted small">ОПИС</span>
-                    <p class="mt-1">
-                        {% if task.description %}
-                            {{ task.description|linebreaks }}
-                        {% else %}
-                            <em class="text-muted">Опис відсутній</em>
-                        {% endif %}
-                    </p>
-                </div>
-
-                <div class="row text-muted small">
-                    <div class="col-sm-4">
-                        <i class="fas fa-user mr-1"></i>
-                        <strong>Власник:</strong> {{ task.owner.username }}
-                    </div>
-                    <div class="col-sm-4">
-                        <i class="fas fa-calendar-plus mr-1"></i>
-                        <strong>Створено:</strong> {{ task.created_at|date:"d.m.Y H:i" }}
-                    </div>
-                    <div class="col-sm-4">
-                        {% if task.due_date %}
-                        <i class="fas fa-calendar-alt mr-1"></i>
-                        <strong>Дедлайн:</strong> {{ task.due_date|date:"d.m.Y" }}
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% if task.updated_at %}
-                <div class="text-muted small mt-2">
-                    <i class="fas fa-clock mr-1"></i>
-                    <strong>Оновлено:</strong> {{ task.updated_at|date:"d.m.Y H:i" }}
-                </div>
-                {% endif %}
-
-            </div>
-        </div>
+  <div class="card" style="margin-bottom:12px;">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px;">
+      <h1 style="font-size:18px; font-weight:600; color:var(--text-primary); line-height:1.4; {% if task.status == 'done' %}text-decoration:line-through; opacity:0.5;{% endif %}">{{ task.title }}</h1>
     </div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+      <span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span>
+      <span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+      {% if task.is_overdue %}<span class="badge badge-overdue">⚠ Прострочено</span>{% endif %}
+      {% for tag in task.tags.all %}
+      <span class="tag-pill" style="background:{{ tag.color }}22; color:{{ tag.color }}; border:1px solid {{ tag.color }}44;"># {{ tag.name }}</span>
+      {% endfor %}
+    </div>
+
+    {% if task.description %}
+    <div style="background:var(--bg-elevated); border-radius:var(--radius-sm); padding:14px; font-size:13.5px; color:var(--text-secondary); line-height:1.7; white-space:pre-wrap;">{{ task.description }}</div>
+    {% else %}
+    <div style="color:var(--text-muted); font-size:13px; font-style:italic;">Опис відсутній</div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div>
+        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Власник</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:24px; height:24px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:white;">{{ task.owner.username|first|upper }}</div>
+          <span style="font-size:13px;">{{ task.owner.username }}</span>
+        </div>
+      </div>
+      {% if task.due_date %}
+      <div>
+        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Дедлайн</div>
+        <div style="font-size:13px; color:{% if task.is_overdue %}var(--red){% else %}var(--text-primary){% endif %};">{{ task.due_date|date:"d.m.Y" }}</div>
+      </div>
+      {% endif %}
+      <div>
+        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Створено</div>
+        <div style="font-size:13px; color:var(--text-secondary);">{{ task.created_at|date:"d.m.Y H:i" }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Оновлено</div>
+        <div style="font-size:13px; color:var(--text-secondary);">{{ task.updated_at|date:"d.m.Y H:i" }}</div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

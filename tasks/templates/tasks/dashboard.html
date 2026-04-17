@@ -1,0 +1,83 @@
+{% extends 'tasks/base.html' %}
+{% block title %}Дашборд — TaskFlow{% endblock %}
+{% block page_title %}Дашборд{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-dot" style="background:#7c3aed"></div>
+    <div class="stat-num">{{ total }}</div>
+    <div class="stat-label">Всього задач</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-dot" style="background:#888"></div>
+    <div class="stat-num">{{ todo_count }}</div>
+    <div class="stat-label">To Do</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-dot" style="background:#3b82f6"></div>
+    <div class="stat-num">{{ in_progress_count }}</div>
+    <div class="stat-label">In Progress</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-dot" style="background:#22c55e"></div>
+    <div class="stat-num">{{ done_count }}</div>
+    <div class="stat-label">Виконано</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-dot" style="background:#ef4444"></div>
+    <div class="stat-num">{{ overdue_count }}</div>
+    <div class="stat-label">Прострочено</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Останні задачі</span>
+      <a href="{% url 'tasks:task_list' %}" class="btn btn-ghost" style="padding:4px 10px; font-size:12px;">Всі</a>
+    </div>
+    {% if recent_tasks %}
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      {% for task in recent_tasks %}
+      <a href="{% url 'tasks:task_detail' task.pk %}" style="display:flex; align-items:center; gap:10px; padding:8px; border-radius:6px; transition:background 0.15s;">
+        <div class="p-dot p-dot-{{ task.priority }}"></div>
+        <span style="flex:1; font-size:13px; color:var(--text-primary); {% if task.status == 'done' %}opacity:0.5; text-decoration:line-through;{% endif %}">{{ task.title|truncatechars:40 }}</span>
+        <span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:24px;">
+      <p>Задач ще немає</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🔥 Термінові задачі</span>
+    </div>
+    {% if urgent_tasks %}
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      {% for task in urgent_tasks %}
+      <a href="{% url 'tasks:task_detail' task.pk %}" style="display:flex; align-items:center; gap:10px; padding:8px; border-radius:6px;">
+        <div style="width:3px; height:32px; border-radius:2px; background:var(--red); flex-shrink:0;"></div>
+        <div style="flex:1;">
+          <div style="font-size:13px; color:var(--text-primary);">{{ task.title|truncatechars:35 }}</div>
+          {% if task.due_date %}<div style="font-size:11px; color:{% if task.is_overdue %}var(--red){% else %}var(--text-muted){% endif %};">{{ task.due_date|date:"d.m.Y" }}</div>{% endif %}
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:24px;">
+      <p>Немає термінових задач 🎉</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
