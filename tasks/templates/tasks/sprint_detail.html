@@ -1,0 +1,79 @@
+{% extends 'tasks/base.html' %}
+{% block title %}{{ sprint.name }}{% endblock %}
+{% block page_title %}{{ sprint.name }}{% endblock %}
+{% block extra_css %}
+<style>
+.kb{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;height:calc(100vh - 130px);}
+.kc{display:flex;flex-direction:column;background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden;}
+.kc-h{padding:10px 12px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.kc-t{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px;}
+.kc-cnt{font-size:11px;color:var(--muted);background:var(--active);padding:1px 6px;border-radius:10px;}
+.kc-b{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:7px;}
+.kc-b.drag-over{background:var(--hover);}
+.kk{background:var(--elev);border:1px solid var(--brd);border-radius:var(--rs);padding:10px;cursor:grab;transition:border-color .13s;}
+.kk:active{cursor:grabbing;}
+.kk.dragging{opacity:.35;}
+.kk:hover{border-color:var(--brd2);}
+.kk-ttl{font-size:12.5px;font-weight:500;margin-bottom:7px;line-height:1.4;}
+.kk-bar{height:2px;border-radius:1px;margin-bottom:8px;}
+.kk-meta{display:flex;align-items:center;justify-content:space-between;gap:4px;}
+</style>
+{% endblock %}
+{% block topbar_actions %}
+<span class="badge b-{{ sprint.status }}">{{ sprint.get_status_display }}</span>
+{% if sprint.start_date %}<span style="font-size:12px;color:var(--muted);">{{ sprint.start_date|date:"d.m" }} – {{ sprint.end_date|date:"d.m.Y" }}</span>{% endif %}
+<span style="font-size:12px;color:var(--muted);">{{ done }}/{{ total }} виконано</span>
+{% endblock %}
+{% block content %}
+<div class="kb">
+{% for col in columns %}
+<div class="kc">
+  <div class="kc-h">
+    <div class="kc-t"><div style="width:7px;height:7px;border-radius:50%;background:{{ col.color }};"></div>{{ col.label }}</div>
+    <span class="kc-cnt">{{ col.tasks|length }}</span>
+  </div>
+  <div class="kc-b" data-status="{{ col.key }}" id="col-{{ col.key }}">
+    {% for task in col.tasks %}
+    <div class="kk" draggable="true" data-id="{{ task.pk }}" data-status="{{ task.status }}">
+      <div class="kk-bar" style="background:{% if task.priority == 'urgent' %}var(--red){% elif task.priority == 'high' %}var(--amber){% elif task.priority == 'medium' %}var(--blue){% else %}#333{% endif %};"></div>
+      <div class="kk-ttl"><a href="{% url 'tasks:task_detail' task.pk %}" style="color:var(--txt);">{{ task.title }}</a></div>
+      {% if task.tags.all %}<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px;">{% for tag in task.tags.all %}<span class="tag-pill" style="background:{{ tag.color }}22;color:{{ tag.color }};font-size:10px;">#{{ tag.name }}</span>{% endfor %}</div>{% endif %}
+      <div class="kk-meta">
+        <span class="badge b-{{ task.issue_type }}" style="font-size:10px;">{{ task.get_issue_type_display }}</span>
+        {% if task.assignee %}<div class="av" style="width:20px;height:20px;font-size:10px;" title="{{ task.assignee.username }}">{{ task.assignee.username|first|upper }}</div>{% endif %}
+        {% if task.due_date %}<span style="font-size:10.5px;color:{% if task.is_overdue %}var(--red){% else %}var(--muted){% endif %};">{{ task.due_date|date:"d.m" }}</span>{% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:20px 10px;color:var(--muted);font-size:11.5px;border:1px dashed var(--brd);border-radius:var(--rs);">Перетягни сюди</div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const csrf='{{ csrf_token }}';let drag=null;
+document.querySelectorAll('.kk').forEach(c=>{
+  c.addEventListener('dragstart',e=>{drag=c;c.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+  c.addEventListener('dragend',()=>{c.classList.remove('dragging');drag=null;});
+});
+document.querySelectorAll('.kc-b').forEach(col=>{
+  col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drag-over');});
+  col.addEventListener('dragleave',()=>col.classList.remove('drag-over'));
+  col.addEventListener('drop',e=>{
+    e.preventDefault();col.classList.remove('drag-over');
+    if(!drag)return;
+    const ns=col.dataset.status,id=drag.dataset.id;
+    if(drag.dataset.status===ns)return;
+    const fd=new FormData();fd.append('status',ns);fd.append('csrfmiddlewaretoken',csrf);
+    fetch(`/tasks/${id}/status/`,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+      if(d.ok){col.insertBefore(drag,col.lastElementChild?.nextSibling||null);drag.dataset.status=ns;
+        document.querySelectorAll('.kc').forEach(k=>{k.querySelector('.kc-cnt').textContent=k.querySelectorAll('.kk').length;});
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

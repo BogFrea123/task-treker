@@ -1,57 +1,21 @@
 {% extends 'tasks/base.html' %}
-{% block title %}Теги — TaskFlow{% endblock %}
+{% block title %}Теги{% endblock %}
 {% block page_title %}Теги{% endblock %}
-{% block nav_tags %}active{% endblock %}
-
-{% block topbar_actions %}
-<a href="{% url 'tasks:tag_create' %}" class="btn btn-ghost">
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  Новий тег
-</a>
-{% endblock %}
-
+{% block nt %}active{% endblock %}
+{% block topbar_actions %}<a href="{% url 'tasks:tag_create' %}" class="btn btn-ghost btn-sm">+ Тег</a>{% endblock %}
 {% block content %}
-<div style="max-width:600px;">
-  {% if tags %}
-  <div class="card" style="padding:0; overflow:hidden;">
-    <table class="cu-table">
-      <thead>
-        <tr>
-          <th>Тег</th>
-          <th>Задач</th>
-          <th style="width:60px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for tag in tags %}
-        <tr>
-          <td>
-            <span class="tag-pill" style="background:{{ tag.color }}22; color:{{ tag.color }}; border:1px solid {{ tag.color }}44; font-size:13px; padding:4px 10px;">
-              # {{ tag.name }}
-            </span>
-          </td>
-          <td style="color:var(--text-muted); font-size:13px;">{{ tag.task_count }}</td>
-          <td>
-            <form method="post" action="{% url 'tasks:tag_delete' tag.pk %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-ghost" style="padding:4px 8px; color:var(--red);" onclick="return confirm('Видалити тег «{{ tag.name }}»?')">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="card">
-    <div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-      <p>Тегів ще немає</p>
-      <a href="{% url 'tasks:tag_create' %}" class="btn btn-primary" style="margin-top:12px;">Створити тег</a>
-    </div>
-  </div>
-  {% endif %}
+<div style="max-width:500px;">
+{% if tags %}
+<div class="card" style="padding:0;overflow:hidden;">
+<table class="cu-table"><thead><tr><th>Тег</th><th>Задач</th><th></th></tr></thead><tbody>
+{% for tag in tags %}
+<tr><td><span class="tag-pill" style="background:{{ tag.color }}22;color:{{ tag.color }};border:1px solid {{ tag.color }}44;font-size:12.5px;padding:3px 10px;">#{{ tag.name }}</span></td>
+<td style="color:var(--muted);font-size:12.5px;">{{ tag.task_count }}</td>
+<td><form method="post" action="{% url 'tasks:tag_delete' tag.pk %}" style="display:inline;">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">✕</button></form></td></tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}
+<div class="card"><div class="empty"><p>Тегів немає</p><a href="{% url 'tasks:tag_create' %}" class="btn btn-primary" style="margin-top:12px;">Створити тег</a></div></div>
+{% endif %}
 </div>
 {% endblock %}

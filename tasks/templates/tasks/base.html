@@ -1,247 +1,146 @@
 <!DOCTYPE html>
-<html lang="uk" data-theme="dark">
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}TaskFlow{% endblock %}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg-base: #0d0d0f;
-  --bg-surface: #16161a;
-  --bg-elevated: #1e1e24;
-  --bg-hover: #252530;
-  --bg-active: #2e2e3a;
-  --border: rgba(255,255,255,0.08);
-  --border-strong: rgba(255,255,255,0.15);
-  --text-primary: #e8e8f0;
-  --text-secondary: #8b8b9e;
-  --text-muted: #55555f;
-  --accent: #7c3aed;
-  --accent-hover: #6d28d9;
-  --accent-soft: rgba(124,58,237,0.15);
-  --blue: #3b82f6;
-  --blue-soft: rgba(59,130,246,0.15);
-  --green: #22c55e;
-  --green-soft: rgba(34,197,94,0.15);
-  --amber: #f59e0b;
-  --amber-soft: rgba(245,158,11,0.15);
-  --red: #ef4444;
-  --red-soft: rgba(239,68,68,0.15);
-  --sidebar-w: 220px;
-  --radius: 8px;
-  --radius-sm: 5px;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; background: var(--bg-base); color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.5; }
-a { color: inherit; text-decoration: none; }
-button { cursor: pointer; font-family: inherit; }
-
-/* LAYOUT */
-.app { display: flex; height: 100vh; overflow: hidden; }
-.sidebar { width: var(--sidebar-w); background: var(--bg-surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
-.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.topbar { height: 52px; background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 12px; flex-shrink: 0; }
-.content { flex: 1; overflow-y: auto; padding: 24px; }
-
-/* SIDEBAR */
-.sidebar-logo { padding: 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
-.logo-icon { width: 30px; height: 30px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-.logo-icon svg { width: 16px; height: 16px; fill: white; }
-.logo-text { font-size: 15px; font-weight: 600; color: var(--text-primary); }
-
-.sidebar-section { padding: 12px 8px 4px; }
-.sidebar-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 0 8px; margin-bottom: 4px; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: var(--radius-sm); color: var(--text-secondary); font-size: 13.5px; transition: background 0.15s, color 0.15s; cursor: pointer; }
-.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-.nav-item.active { background: var(--accent-soft); color: #a78bfa; }
-.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.7; }
-.nav-item.active svg { opacity: 1; }
-
-.sidebar-user { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-.user-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white; flex-shrink: 0; }
-.user-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-.user-role { font-size: 11px; color: var(--text-muted); }
-
-/* TOPBAR */
-.topbar-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
-.topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-
-/* BUTTONS */
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; border: 1px solid transparent; transition: all 0.15s; line-height: 1; }
-.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
-.btn-primary:hover { background: var(--accent-hover); }
-.btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border-strong); }
-.btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
-.btn-danger { background: var(--red-soft); color: var(--red); border-color: transparent; }
-.btn-danger:hover { background: var(--red); color: white; }
-.btn svg { width: 14px; height: 14px; }
-
-/* BADGES */
-.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
-.badge-todo { background: var(--bg-active); color: var(--text-secondary); }
-.badge-in_progress { background: var(--blue-soft); color: #60a5fa; }
-.badge-review { background: var(--amber-soft); color: #fbbf24; }
-.badge-done { background: var(--green-soft); color: #4ade80; }
-.badge-low { background: var(--bg-active); color: var(--text-secondary); }
-.badge-medium { background: var(--blue-soft); color: #60a5fa; }
-.badge-high { background: var(--amber-soft); color: #fbbf24; }
-.badge-urgent { background: var(--red-soft); color: #f87171; }
-.badge-overdue { background: var(--red-soft); color: #f87171; }
-
-/* PRIORITY DOT */
-.p-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.p-dot-low { background: #555; }
-.p-dot-medium { background: var(--blue); }
-.p-dot-high { background: var(--amber); }
-.p-dot-urgent { background: var(--red); }
-
-/* CARDS */
-.card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.card-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-
-/* FORMS */
-.cu-input, .cu-select, .cu-textarea {
-  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary);
-  padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13.5px; font-family: inherit;
-  transition: border-color 0.15s;
-}
-.cu-input:focus, .cu-select:focus, .cu-textarea:focus { outline: none; border-color: var(--accent); }
-.cu-input::placeholder { color: var(--text-muted); }
-.cu-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8b9e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
-.cu-select option { background: var(--bg-elevated); }
-.form-group { margin-bottom: 16px; }
-.form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-.form-error { font-size: 12px; color: var(--red); margin-top: 4px; }
-.cu-input-sm { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-family: inherit; }
-.cu-input-sm:focus { outline: none; border-color: var(--accent); }
-.cu-select-sm { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-family: inherit; appearance: none; }
-.cu-checkbox-group { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
-.cu-checkbox-group li { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }
-.cu-checkbox-group input { accent-color: var(--accent); }
-
-/* TAG PILL */
-.tag-pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-
-/* TABLE */
-.cu-table { width: 100%; border-collapse: collapse; }
-.cu-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 12px; border-bottom: 1px solid var(--border); }
-.cu-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-.cu-table tr:last-child td { border-bottom: none; }
-.cu-table tr:hover td { background: var(--bg-hover); }
-.cu-table a { color: var(--text-primary); }
-.cu-table a:hover { color: #a78bfa; }
-
-/* ALERTS */
-.alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 12px; }
-.alert-success { background: var(--green-soft); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
-.alert-error { background: var(--red-soft); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-
-/* STAT CARDS */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
-.stat-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-.stat-num { font-size: 26px; font-weight: 600; color: var(--text-primary); }
-.stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.stat-dot { width: 8px; height: 8px; border-radius: 50%; margin-bottom: 10px; }
-
-/* EMPTY STATE */
-.empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
-.empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
-.empty-state p { font-size: 14px; }
-
-/* SCROLLBAR */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg-active); border-radius: 10px; }
-
-/* MESSAGES TOASTS */
-.toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+:root{--bg:#0d0d0f;--surf:#16161a;--elev:#1e1e24;--hover:#252530;--active:#2e2e3a;--brd:rgba(255,255,255,0.08);--brd2:rgba(255,255,255,0.14);--txt:#e8e8f0;--txt2:#8b8b9e;--muted:#45454f;--acc:#7c3aed;--acc2:#6d28d9;--acc-s:rgba(124,58,237,0.15);--blue:#3b82f6;--blue-s:rgba(59,130,246,0.15);--green:#22c55e;--green-s:rgba(34,197,94,0.15);--amber:#f59e0b;--amber-s:rgba(245,158,11,0.15);--red:#ef4444;--red-s:rgba(239,68,68,0.15);--sw:220px;--r:8px;--rs:5px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;font-family:inherit;}
+.app{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:var(--sw);background:var(--surf);border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:52px;background:var(--surf);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0;}
+.content{flex:1;overflow-y:auto;padding:24px;}
+.sb-logo{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--brd);flex-shrink:0;}
+.logo-ic{width:28px;height:28px;background:var(--acc);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.logo-ic svg{width:15px;height:15px;fill:white;}
+.logo-txt{font-size:15px;font-weight:700;color:var(--txt);}
+.sb-sec{padding:10px 8px 2px;}
+.sb-lbl{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:0 8px;margin-bottom:3px;}
+.nav-i{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:var(--rs);color:var(--txt2);font-size:13px;transition:background .12s,color .12s;}
+.nav-i:hover{background:var(--hover);color:var(--txt);}
+.nav-i.active{background:var(--acc-s);color:#a78bfa;}
+.nav-i svg{width:14px;height:14px;flex-shrink:0;}
+.sb-user{margin-top:auto;padding:12px;border-top:1px solid var(--brd);display:flex;align-items:center;gap:9px;}
+.av{width:28px;height:28px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;}
+.topbar-title{font-size:14px;font-weight:600;}
+.tb-actions{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:var(--rs);font-size:13px;font-weight:500;border:1px solid transparent;transition:all .13s;line-height:1;white-space:nowrap;}
+.btn svg{width:13px;height:13px;}
+.btn-primary{background:var(--acc);color:white;}
+.btn-primary:hover{background:var(--acc2);}
+.btn-ghost{background:transparent;color:var(--txt2);border-color:var(--brd2);}
+.btn-ghost:hover{background:var(--hover);color:var(--txt);}
+.btn-danger{background:var(--red-s);color:var(--red);}
+.btn-danger:hover{background:var(--red);color:white;}
+.btn-sm{padding:4px 9px;font-size:12px;}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500;}
+.b-todo{background:var(--active);color:var(--txt2);}
+.b-in_progress{background:var(--blue-s);color:#60a5fa;}
+.b-review{background:var(--amber-s);color:#fbbf24;}
+.b-done{background:var(--green-s);color:#4ade80;}
+.b-low{background:var(--active);color:var(--txt2);}
+.b-medium{background:var(--blue-s);color:#60a5fa;}
+.b-high{background:var(--amber-s);color:#fbbf24;}
+.b-urgent{background:var(--red-s);color:#f87171;}
+.b-planned{background:var(--active);color:var(--txt2);}
+.b-active{background:var(--blue-s);color:#60a5fa;}
+.b-completed{background:var(--green-s);color:#4ade80;}
+.b-task{background:var(--blue-s);color:#60a5fa;}
+.b-bug{background:var(--red-s);color:#f87171;}
+.b-story{background:var(--green-s);color:#4ade80;}
+.b-epic{background:var(--acc-s);color:#a78bfa;}
+.pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pdot-low{background:#555;}
+.pdot-medium{background:var(--blue);}
+.pdot-high{background:var(--amber);}
+.pdot-urgent{background:var(--red);}
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);padding:16px;}
+.cu-input,.cu-select{width:100%;background:var(--elev);border:1px solid var(--brd);color:var(--txt);padding:8px 11px;border-radius:var(--rs);font-size:13px;font-family:inherit;transition:border-color .13s;}
+.cu-input:focus,.cu-select:focus{outline:none;border-color:var(--acc);}
+.cu-input::placeholder{color:var(--muted);}
+.cu-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%238b8b9e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:28px;}
+.cu-select option{background:var(--elev);}
+.cu-input-sm,.cu-select-sm{background:var(--elev);border:1px solid var(--brd);color:var(--txt);padding:5px 9px;border-radius:var(--rs);font-size:12px;font-family:inherit;}
+.cu-select-sm{appearance:none;}
+.cu-input-sm:focus,.cu-select-sm:focus{outline:none;border-color:var(--acc);}
+.cu-input-sm::placeholder{color:var(--muted);}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;}
+.form-err{font-size:11.5px;color:var(--red);margin-top:3px;}
+.tag-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;}
+.cu-table{width:100%;border-collapse:collapse;}
+.cu-table th{text-align:left;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;border-bottom:1px solid var(--brd);}
+.cu-table td{padding:9px 12px;border-bottom:1px solid var(--brd);vertical-align:middle;}
+.cu-table tr:last-child td{border-bottom:none;}
+.cu-table tr:hover td{background:var(--hover);}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;}
+.stat-card{background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);padding:14px;}
+.stat-num{font-size:24px;font-weight:700;color:var(--txt);}
+.stat-lbl{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.stat-dot{width:7px;height:7px;border-radius:50%;margin-bottom:8px;}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty svg{width:36px;height:36px;margin-bottom:10px;opacity:.25;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--active);border-radius:10px;}
+.type-ic{font-size:11px;font-weight:700;padding:2px 5px;border-radius:3px;}
 </style>
 {% block extra_css %}{% endblock %}
 </head>
 <body>
 <div class="app">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      </div>
-      <span class="logo-text">TaskFlow</span>
-    </div>
-
-    {% if user.is_authenticated %}
-    <div class="sidebar-section">
-      <div class="sidebar-label">Головне</div>
-      <a href="{% url 'tasks:dashboard' %}" class="nav-item {% block nav_dashboard %}{% endblock %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Дашборд
-      </a>
-      <a href="{% url 'tasks:task_list' %}" class="nav-item {% block nav_list %}{% endblock %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        Список задач
-      </a>
-      <a href="{% url 'tasks:kanban' %}" class="nav-item {% block nav_kanban %}{% endblock %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
-        Kanban дошка
-      </a>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-label">Теги</div>
-      <a href="{% url 'tasks:tag_list' %}" class="nav-item {% block nav_tags %}{% endblock %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-        Управління тегами
-      </a>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-label">Дії</div>
-      <a href="{% url 'tasks:task_create' %}" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        Нова задача
-      </a>
-    </div>
-
-    <div class="sidebar-user">
-      <div class="user-avatar">{{ user.username|first|upper }}</div>
-      <div>
-        <div class="user-name">{{ user.username }}</div>
-        <a href="{% url 'logout' %}" style="font-size:11px; color:var(--text-muted);">Вийти</a>
-      </div>
-    </div>
-    {% endif %}
-  </aside>
-
-  <!-- MAIN -->
-  <div class="main">
-    <div class="topbar">
-      <span class="topbar-title">{% block page_title %}TaskFlow{% endblock %}</span>
-      <div class="topbar-actions">
-        {% block topbar_actions %}{% endblock %}
-        {% if user.is_authenticated %}
-        <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Задача
-        </a>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="content">
-      {% if messages %}
-      <div class="toast-container">
-        {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</div>
-        {% endfor %}
-      </div>
-      {% endif %}
-      {% block content %}{% endblock %}
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="logo-ic"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+    <span class="logo-txt">TaskFlow</span>
+  </div>
+  {% if user.is_authenticated %}
+  <div class="sb-sec">
+    <div class="sb-lbl">Головне</div>
+    <a href="{% url 'tasks:dashboard' %}" class="nav-i {% block nd %}{% endblock %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Дашборд</a>
+    <a href="{% url 'tasks:project_list' %}" class="nav-i {% block np %}{% endblock %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Проєкти</a>
+    <a href="{% url 'tasks:task_list' %}" class="nav-i {% block nl %}{% endblock %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Мої задачі</a>
+    <a href="{% url 'tasks:kanban' %}" class="nav-i {% block nk %}{% endblock %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>Kanban</a>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Налаштування</div>
+    <a href="{% url 'tasks:tag_list' %}" class="nav-i {% block nt %}{% endblock %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Теги</a>
+  </div>
+  <div class="sb-user">
+    <div class="av">{{ user.username|first|upper }}</div>
+    <div>
+      <div style="font-size:12.5px;font-weight:500;">{{ user.username }}</div>
+      <a href="{% url 'logout' %}" style="font-size:11px;color:var(--muted);">Вийти</a>
     </div>
   </div>
+  {% endif %}
+</aside>
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title">{% block page_title %}TaskFlow{% endblock %}</span>
+    <div class="tb-actions">
+      {% block topbar_actions %}{% endblock %}
+      {% if user.is_authenticated %}
+      <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Задача</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="content">
+    {% if messages %}{% for m in messages %}<div style="background:var(--green-s);color:#4ade80;border:1px solid rgba(34,197,94,.2);border-radius:var(--rs);padding:9px 13px;font-size:13px;margin-bottom:12px;">{{ m }}</div>{% endfor %}{% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
 </div>
 {% block extra_js %}{% endblock %}
 </body>

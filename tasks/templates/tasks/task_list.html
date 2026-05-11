@@ -1,145 +1,56 @@
 {% extends 'tasks/base.html' %}
-{% block title %}Задачі — TaskFlow{% endblock %}
-{% block page_title %}Список задач{% endblock %}
-{% block nav_list %}active{% endblock %}
-
+{% block title %}Мої задачі{% endblock %}
+{% block page_title %}Мої задачі{% endblock %}
+{% block nl %}active{% endblock %}
 {% block topbar_actions %}
-<div style="display:flex; gap:8px; align-items:center;">
-  <form method="get" style="display:flex; gap:6px; align-items:center;">
-    {{ filter_form.search }}
-    {{ filter_form.status }}
-    {{ filter_form.priority }}
-    <button type="submit" class="btn btn-ghost" style="padding:5px 10px;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </button>
-    {% if request.GET.search or request.GET.status or request.GET.priority or request.GET.tag %}
-    <a href="{% url 'tasks:task_list' %}" class="btn btn-ghost" style="padding:5px 10px; font-size:12px;">✕</a>
-    {% endif %}
-  </form>
-</div>
+<form method="get" style="display:flex;gap:6px;align-items:center;">
+  {{ filter_form.search }}{{ filter_form.status }}{{ filter_form.priority }}{{ filter_form.issue_type }}{{ filter_form.assignee }}
+  <button type="submit" class="btn btn-ghost btn-sm">Фільтр</button>
+  {% if request.GET %}<a href="{% url 'tasks:task_list' %}" class="btn btn-ghost btn-sm">✕</a>{% endif %}
+</form>
 {% endblock %}
-
 {% block content %}
-
-<!-- STATUS TABS -->
-<div style="display:flex; gap:4px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:0;">
-  {% with current_status=request.GET.status %}
-  <a href="{% url 'tasks:task_list' %}{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}" 
-     style="padding:8px 14px; font-size:13px; border-bottom:2px solid {% if not current_status %}var(--accent){% else %}transparent{% endif %}; color:{% if not current_status %}#a78bfa{% else %}var(--text-secondary){% endif %}; margin-bottom:-1px;">
-    Всі <span style="font-size:11px; opacity:0.6;">{{ status_counts.todo|add:status_counts.in_progress|add:status_counts.review|add:status_counts.done }}</span>
-  </a>
-  <a href="?status=todo{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-     style="padding:8px 14px; font-size:13px; border-bottom:2px solid {% if current_status == 'todo' %}var(--accent){% else %}transparent{% endif %}; color:{% if current_status == 'todo' %}#a78bfa{% else %}var(--text-secondary){% endif %}; margin-bottom:-1px;">
-    To Do <span style="font-size:11px; opacity:0.6;">{{ status_counts.todo }}</span>
-  </a>
-  <a href="?status=in_progress{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-     style="padding:8px 14px; font-size:13px; border-bottom:2px solid {% if current_status == 'in_progress' %}var(--blue){% else %}transparent{% endif %}; color:{% if current_status == 'in_progress' %}#60a5fa{% else %}var(--text-secondary){% endif %}; margin-bottom:-1px;">
-    In Progress <span style="font-size:11px; opacity:0.6;">{{ status_counts.in_progress }}</span>
-  </a>
-  <a href="?status=review{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-     style="padding:8px 14px; font-size:13px; border-bottom:2px solid {% if current_status == 'review' %}var(--amber){% else %}transparent{% endif %}; color:{% if current_status == 'review' %}#fbbf24{% else %}var(--text-secondary){% endif %}; margin-bottom:-1px;">
-    Review <span style="font-size:11px; opacity:0.6;">{{ status_counts.review }}</span>
-  </a>
-  <a href="?status=done{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-     style="padding:8px 14px; font-size:13px; border-bottom:2px solid {% if current_status == 'done' %}var(--green){% else %}transparent{% endif %}; color:{% if current_status == 'done' %}#4ade80{% else %}var(--text-secondary){% endif %}; margin-bottom:-1px;">
-    Done <span style="font-size:11px; opacity:0.6;">{{ status_counts.done }}</span>
-  </a>
+<div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--brd);padding-bottom:0;">
+  {% with cs=request.GET.status %}
+  {% for key,label,cnt,col in status_tabs %}
+  <a href="?status={{ key }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" style="padding:7px 12px;font-size:13px;border-bottom:2px solid {% if cs == key %}{{ col }}{% else %}transparent{% endif %};color:{% if cs == key %}var(--txt){% else %}var(--txt2){% endif %};margin-bottom:-1px;">{{ label }} <span style="font-size:11px;opacity:.6;">{{ cnt }}</span></a>
+  {% endfor %}
   {% endwith %}
 </div>
-
-<!-- TAG FILTERS -->
 {% if user_tags %}
-<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;">
-  {% for tag in user_tags %}
-  <a href="?tag={{ tag.id }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}"
-     class="tag-pill"
-     style="background:{{ tag.color }}22; color:{{ tag.color }}; border:1px solid {{ tag.color }}44; {% if active_tag == tag.id|stringformat:'s' %}outline:2px solid {{ tag.color }};{% endif %}">
-    # {{ tag.name }}
-  </a>
-  {% endfor %}
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+  {% for tag in user_tags %}<a href="?tag={{ tag.id }}" class="tag-pill" style="background:{{ tag.color }}22;color:{{ tag.color }};border:1px solid {{ tag.color }}44;{% if active_tag == tag.id|stringformat:'s' %}outline:2px solid {{ tag.color }};{% endif %}">#{{ tag.name }}</a>{% endfor %}
 </div>
 {% endif %}
-
-<!-- TASK TABLE -->
-<div class="card" style="padding:0; overflow:hidden;">
-  {% if tasks %}
-  <table class="cu-table">
-    <thead>
-      <tr>
-        <th style="width:36px;"></th>
-        <th>Назва</th>
-        <th>Статус</th>
-        <th>Пріоритет</th>
-        <th>Теги</th>
-        <th>Дедлайн</th>
-        <th style="width:80px;"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for task in tasks %}
-      <tr>
-        <td>
-          <div class="p-dot p-dot-{{ task.priority }}" style="margin:0 auto;"></div>
-        </td>
-        <td>
-          <a href="{% url 'tasks:task_detail' task.pk %}" style="font-size:13.5px; font-weight:500; {% if task.status == 'done' %}opacity:0.45; text-decoration:line-through;{% endif %}">
-            {{ task.title }}
-          </a>
-          {% if task.description %}
-          <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">{{ task.description|truncatechars:55 }}</div>
-          {% endif %}
-        </td>
-        <td><span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span></td>
-        <td><span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span></td>
-        <td>
-          <div style="display:flex; gap:4px; flex-wrap:wrap;">
-            {% for tag in task.tags.all %}
-            <span class="tag-pill" style="background:{{ tag.color }}22; color:{{ tag.color }}; font-size:10.5px;"># {{ tag.name }}</span>
-            {% endfor %}
-          </div>
-        </td>
-        <td>
-          {% if task.due_date %}
-          <span style="font-size:12px; color:{% if task.is_overdue %}var(--red){% else %}var(--text-muted){% endif %};">
-            {% if task.is_overdue %}⚠ {% endif %}{{ task.due_date|date:"d.m.Y" }}
-          </span>
-          {% else %}
-          <span style="color:var(--text-muted); font-size:12px;">—</span>
-          {% endif %}
-        </td>
-        <td>
-          <div style="display:flex; gap:4px;">
-            <a href="{% url 'tasks:task_update' task.pk %}" class="btn btn-ghost" style="padding:4px 8px;" title="Редагувати">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </a>
-            <a href="{% url 'tasks:task_delete' task.pk %}" class="btn btn-ghost" style="padding:4px 8px; color:var(--red);" title="Видалити">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-            </a>
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  {% if is_paginated %}
-  <div style="display:flex; align-items:center; justify-content:center; gap:8px; padding:12px; border-top:1px solid var(--border);">
-    {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-ghost" style="padding:4px 10px;">‹</a>
-    {% endif %}
-    <span style="font-size:12px; color:var(--text-muted);">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-ghost" style="padding:4px 10px;">›</a>
-    {% endif %}
-  </div>
-  {% endif %}
-
-  {% else %}
-  <div class="empty-state">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-    <p>Задач не знайдено</p>
-    <a href="{% url 'tasks:task_create' %}" class="btn btn-primary" style="margin-top:12px;">Створити першу задачу</a>
-  </div>
-  {% endif %}
+<div class="card" style="padding:0;overflow:hidden;">
+{% if tasks %}
+<table class="cu-table">
+  <thead><tr><th style="width:30px;"></th><th>Задача</th><th>Проєкт</th><th>Тип</th><th>Статус</th><th>Пріоритет</th><th>Виконавець</th><th>Дедлайн</th><th style="width:60px;"></th></tr></thead>
+  <tbody>
+  {% for task in tasks %}
+  <tr>
+    <td><div class="pdot pdot-{{ task.priority }}" style="margin:0 auto;"></div></td>
+    <td><a href="{% url 'tasks:task_detail' task.pk %}" style="font-size:13px;font-weight:500;{% if task.status == 'done' %}opacity:.4;text-decoration:line-through;{% endif %}">{{ task.title }}</a><div style="font-size:11px;color:var(--muted);">{{ task.get_issue_number }}</div></td>
+    <td><span style="font-size:11.5px;color:var(--muted);">{% if task.project %}{{ task.project.key }}{% else %}—{% endif %}</span></td>
+    <td><span class="badge b-{{ task.issue_type }}">{{ task.get_issue_type_display }}</span></td>
+    <td><span class="badge b-{{ task.status }}">{{ task.get_status_display }}</span></td>
+    <td><span class="badge b-{{ task.priority }}">{{ task.get_priority_display }}</span></td>
+    <td><span style="font-size:12px;color:var(--muted);">{{ task.assignee.username|default:"—" }}</span></td>
+    <td>{% if task.due_date %}<span style="font-size:12px;color:{% if task.is_overdue %}var(--red){% else %}var(--muted){% endif %};">{% if task.is_overdue %}⚠ {% endif %}{{ task.due_date|date:"d.m.Y" }}</span>{% else %}<span style="color:var(--muted);">—</span>{% endif %}</td>
+    <td><div style="display:flex;gap:3px;"><a href="{% url 'tasks:task_update' task.pk %}" class="btn btn-ghost btn-sm">✎</a><a href="{% url 'tasks:task_delete' task.pk %}" class="btn btn-danger btn-sm">✕</a></div></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if is_paginated %}
+<div style="display:flex;justify-content:center;gap:8px;padding:10px;border-top:1px solid var(--brd);">
+  {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="btn btn-ghost btn-sm">‹</a>{% endif %}
+  <span style="font-size:12px;color:var(--muted);padding:4px 8px;">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="btn btn-ghost btn-sm">›</a>{% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg><p>Задач не знайдено</p><a href="{% url 'tasks:task_create' %}" class="btn btn-primary" style="margin-top:12px;">Створити задачу</a></div>
+{% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow — Управління задачами</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d0d0f;color:#e8e8f0;font-family:'Inter',sans-serif;}
+a{color:inherit;text-decoration:none;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;background:#0d0d0fdd;backdrop-filter:blur(12px);z-index:100;}
+.logo{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;}
+.logo-ic{width:32px;height:32px;background:#7c3aed;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.logo-ic svg{width:17px;height:17px;fill:white;}
+.nav-links{display:flex;align-items:center;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:13.5px;font-weight:500;border:1px solid transparent;transition:all .14s;cursor:pointer;font-family:inherit;}
+.btn-ghost{background:transparent;color:#8b8b9e;border-color:rgba(255,255,255,0.12);}
+.btn-ghost:hover{background:#1e1e24;color:#e8e8f0;}
+.btn-primary{background:#7c3aed;color:white;}
+.btn-primary:hover{background:#6d28d9;}
+.btn-xl{padding:12px 28px;font-size:15px;border-radius:8px;}
+.hero{text-align:center;padding:80px 24px 60px;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.25);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:24px;}
+.hero h1{font-size:52px;font-weight:800;line-height:1.15;letter-spacing:-.02em;margin-bottom:20px;background:linear-gradient(135deg,#e8e8f0 30%,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero p{font-size:17px;color:#8b8b9e;max-width:540px;margin:0 auto 36px;line-height:1.65;}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.stats-row{display:flex;justify-content:center;gap:40px;padding:32px 24px;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);margin:0 48px;}
+.stat-item{text-align:center;}
+.stat-num{font-size:28px;font-weight:700;color:#e8e8f0;}
+.stat-lbl{font-size:12px;color:#55555f;margin-top:2px;}
+.features{padding:64px 48px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:1100px;margin:0 auto;}
+.feat-card{background:#16161a;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;}
+.feat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.feat-icon svg{width:18px;height:18px;}
+.feat-title{font-size:14px;font-weight:600;margin-bottom:6px;}
+.feat-desc{font-size:13px;color:#55555f;line-height:1.6;}
+.demo-section{padding:48px;max-width:1100px;margin:0 auto;}
+.demo-section h2{font-size:22px;font-weight:700;margin-bottom:6px;}
+.demo-section p{color:#55555f;font-size:13px;margin-bottom:20px;}
+.demo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+.demo-card{background:#16161a;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;position:relative;}
+.demo-card-title{font-size:13.5px;font-weight:500;margin-bottom:8px;}
+.demo-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500;}
+.b-todo{background:rgba(255,255,255,.07);color:#8b8b9e;}
+.b-in_progress{background:rgba(59,130,246,.15);color:#60a5fa;}
+.b-review{background:rgba(245,158,11,.15);color:#fbbf24;}
+.b-done{background:rgba(34,197,94,.15);color:#4ade80;}
+.b-low{background:rgba(255,255,255,.07);color:#8b8b9e;}
+.b-medium{background:rgba(59,130,246,.15);color:#60a5fa;}
+.b-high{background:rgba(245,158,11,.15);color:#fbbf24;}
+.b-urgent{background:rgba(239,68,68,.15);color:#f87171;}
+.b-task{background:rgba(59,130,246,.15);color:#60a5fa;}
+.b-bug{background:rgba(239,68,68,.15);color:#f87171;}
+.b-story{background:rgba(34,197,94,.15);color:#4ade80;}
+.b-epic{background:rgba(124,58,237,.15);color:#a78bfa;}
+.cta{text-align:center;padding:64px 24px;}
+.cta h2{font-size:28px;font-weight:700;margin-bottom:10px;}
+.cta p{color:#55555f;font-size:14px;margin-bottom:28px;}
+footer{text-align:center;padding:24px;color:#2a2a30;font-size:12px;border-top:1px solid rgba(255,255,255,.05);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-ic"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+    TaskFlow
+  </div>
+  <div class="nav-links">
+    <a href="{% url 'login' %}" class="btn btn-ghost">Увійти</a>
+    <a href="{% url 'tasks:register' %}" class="btn btn-primary">Реєстрація</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge">✦ Jira-подібний трекер задач</div>
+  <h1>Керуй задачами як<br>справжня команда</h1>
+  <p>Проєкти, спринти, канбан-дошка, коментарі та логування часу — все в одному місці з темним інтерфейсом у стилі Jira.</p>
+  <div class="hero-btns">
+    <a href="{% url 'tasks:register' %}" class="btn btn-primary btn-xl">Почати безкоштовно</a>
+    <a href="{% url 'login' %}" class="btn btn-ghost btn-xl">Увійти</a>
+  </div>
+</section>
+
+<div class="stats-row">
+  <div class="stat-item"><div class="stat-num">{{ total_tasks }}</div><div class="stat-lbl">Задач створено</div></div>
+  <div class="stat-item"><div class="stat-num">{{ total_users }}</div><div class="stat-lbl">Користувачів</div></div>
+  <div class="stat-item"><div class="stat-num">{{ total_projects }}</div><div class="stat-lbl">Активних проєктів</div></div>
+</div>
+
+<div class="features">
+  <div class="feat-card">
+    <div class="feat-icon" style="background:rgba(124,58,237,.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    </div>
+    <div class="feat-title">Проєкти та епіки</div>
+    <div class="feat-desc">Організуй роботу по проєктах, запрошуй учасників та веди окремі беклоги.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon" style="background:rgba(59,130,246,.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+    </div>
+    <div class="feat-title">Спринти та Kanban</div>
+    <div class="feat-desc">Плануй спринти, переміщуй задачі drag-and-drop між колонками.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon" style="background:rgba(34,197,94,.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </div>
+    <div class="feat-title">Коментарі</div>
+    <div class="feat-desc">Обговорюй задачі прямо в трекері — коментарі з датою та автором.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon" style="background:rgba(245,158,11,.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="feat-title">Логування часу</div>
+    <div class="feat-desc">Вказуй оцінку часу та логуй витрачені години на кожну задачу.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon" style="background:rgba(239,68,68,.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    </div>
+    <div class="feat-title">Призначення задач</div>
+    <div class="feat-desc">Призначай задачі учасникам команди та фільтруй за виконавцем.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-icon" style="background:rgba(124,58,237,.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+    </div>
+    <div class="feat-title">Теги та фільтри</div>
+    <div class="feat-desc">Додавай кольорові теги, фільтруй по типу, пріоритету та статусу.</div>
+  </div>
+</div>
+
+{% if demo_tasks %}
+<div class="demo-section">
+  <h2>Live Demo</h2>
+  <p>Реальні задачі з платформи — переглядай без реєстрації</p>
+  <div class="demo-grid">
+    {% for task in demo_tasks %}
+    <div class="demo-card">
+      <div class="demo-card-title">{{ task.title }}</div>
+      <div class="demo-card-meta">
+        <span class="badge b-{{ task.issue_type }}">{{ task.get_issue_type_display }}</span>
+        <span class="badge b-{{ task.status }}">{{ task.get_status_display }}</span>
+        <span class="badge b-{{ task.priority }}">{{ task.get_priority_display }}</span>
+        {% if task.assignee %}<span style="font-size:11px;color:#55555f;">→ {{ task.assignee.username }}</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="cta">
+  <h2>Готовий почати?</h2>
+  <p>Реєстрація займає менше хвилини. Безкоштовно.</p>
+  <a href="{% url 'tasks:register' %}" class="btn btn-primary btn-xl">Створити акаунт →</a>
+</div>
+
+<footer>TaskFlow © 2024 — Jira-подібний трекер задач</footer>
+</body>
+</html>

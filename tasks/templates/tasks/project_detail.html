@@ -1,0 +1,84 @@
+{% extends 'tasks/base.html' %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block page_title %}[{{ project.key }}] {{ project.name }}{% endblock %}
+{% block np %}active{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'tasks:task_create' %}" class="btn btn-ghost btn-sm">+ Задача</a>
+<a href="{% url 'tasks:project_update' project.pk %}" class="btn btn-ghost btn-sm">✎ Редагувати</a>
+{% endblock %}
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:20px;">
+  <div class="stat-card"><div class="stat-dot" style="background:#6b7280"></div><div class="stat-num">{{ status_counts.todo }}</div><div class="stat-lbl">To Do</div></div>
+  <div class="stat-card"><div class="stat-dot" style="background:#3b82f6"></div><div class="stat-num">{{ status_counts.in_progress }}</div><div class="stat-lbl">In Progress</div></div>
+  <div class="stat-card"><div class="stat-dot" style="background:#f59e0b"></div><div class="stat-num">{{ status_counts.review }}</div><div class="stat-lbl">Review</div></div>
+  <div class="stat-card"><div class="stat-dot" style="background:#22c55e"></div><div class="stat-num">{{ status_counts.done }}</div><div class="stat-lbl">Done</div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;">
+  <div>
+    <!-- Sprints -->
+    {% for sprint in sprints %}
+    <div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <a href="{% url 'tasks:sprint_detail' sprint.pk %}" style="font-size:14px;font-weight:600;color:var(--txt);">{{ sprint.name }}</a>
+          <span class="badge b-{{ sprint.status }}" style="margin-left:8px;">{{ sprint.get_status_display }}</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);">{{ sprint.task_count }} задач</div>
+      </div>
+      {% if sprint.goal %}<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">{{ sprint.goal }}</div>{% endif %}
+      <a href="{% url 'tasks:sprint_detail' sprint.pk %}" class="btn btn-ghost btn-sm">Відкрити дошку →</a>
+    </div>
+    {% endfor %}
+
+    <!-- Backlog -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--brd);">
+        <span style="font-size:13px;font-weight:600;">Бeklог ({{ backlog|length }})</span>
+      </div>
+      {% if backlog %}
+      <table class="cu-table">
+        <thead><tr><th></th><th>Задача</th><th>Тип</th><th>Пріоритет</th><th>Виконавець</th></tr></thead>
+        <tbody>
+        {% for task in backlog %}
+        <tr>
+          <td><div class="pdot pdot-{{ task.priority }}"></div></td>
+          <td><a href="{% url 'tasks:task_detail' task.pk %}" style="font-size:13px;">{{ task.title }}</a></td>
+          <td><span class="badge b-{{ task.issue_type }}">{{ task.get_issue_type_display }}</span></td>
+          <td><span class="badge b-{{ task.priority }}">{{ task.get_priority_display }}</span></td>
+          <td><span style="font-size:12px;color:var(--muted);">{{ task.assignee.username|default:"—" }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty"><p>Бeklог порожній</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Create Sprint -->
+  <div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;">+ Новий спринт</div>
+      <form method="post" action="{% url 'tasks:sprint_create' project.pk %}">
+        {% csrf_token %}
+        <div class="form-group"><label class="form-label">Назва</label>{{ sprint_form.name }}</div>
+        <div class="form-group"><label class="form-label">Мета</label>{{ sprint_form.goal }}</div>
+        <div class="form-group"><label class="form-label">Статус</label>{{ sprint_form.status }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="form-group"><label class="form-label">Початок</label>{{ sprint_form.start_date }}</div>
+          <div class="form-group"><label class="form-label">Кінець</label>{{ sprint_form.end_date }}</div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Створити</button>
+      </form>
+    </div>
+    {% if project.description %}
+    <div class="card" style="margin-top:12px;">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">ОПИС</div>
+      <div style="font-size:13px;color:var(--txt2);">{{ project.description }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
