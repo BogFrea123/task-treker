@@ -1,87 +1,262 @@
 {% extends 'tasks/base.html' %}
 {% block title %}{{ task.get_issue_number }} {{ task.title }}{% endblock %}
-{% block page_title %}{{ task.get_issue_number }} — {{ task.title|truncatechars:50 }}{% endblock %}
+{% block page_title %}{{ task.get_issue_number }} — {{ task.title|truncatechars:45 }}{% endblock %}
 {% block topbar_actions %}
-{% if task.owner == request.user %}<a href="{% url 'tasks:task_update' task.pk %}" class="btn btn-ghost btn-sm">✎ Редагувати</a><a href="{% url 'tasks:task_delete' task.pk %}" class="btn btn-danger btn-sm">Видалити</a>{% endif %}
+{% if task.owner == request.user %}
+<a href="{% url 'tasks:task_update' task.pk %}" class="btn btn-ghost btn-sm">✎ Редагувати</a>
+<a href="{% url 'tasks:task_delete' task.pk %}" class="btn btn-danger btn-sm">Видалити</a>
+{% endif %}
 {% endblock %}
+
+{% block extra_css %}
+<style>
+.mention{color:#c4b5fd;background:rgba(139,92,246,.12);border-radius:3px;padding:1px 4px;font-weight:600;}
+.reply-box{background:var(--elev);border:1px solid var(--brd);border-radius:var(--rs);padding:10px;margin-top:8px;display:none;}
+.reply-box.open{display:block;}
+.mention-drop{position:absolute;background:var(--card);border:1px solid var(--brd2);border-radius:var(--rs);z-index:999;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:200px;overflow-y:auto;}
+.m-item{padding:7px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.m-item:hover,.m-item.active{background:var(--hover);}
+.m-av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0;}
+</style>
+{% endblock %}
+
 {% block content %}
-<div style="display:grid;grid-template-columns:1fr 280px;gap:16px;max-width:1000px;">
+<div style="display:grid;grid-template-columns:1fr 270px;gap:16px;max-width:1040px;">
+
+  <!-- LEFT -->
   <div>
     <a href="{% url 'tasks:task_list' %}" style="font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;margin-bottom:14px;">← Назад</a>
+
+    <!-- Task -->
     <div class="card" style="margin-bottom:12px;">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;">
         <span class="badge b-{{ task.issue_type }}">{{ task.get_issue_type_display }}</span>
         <span class="badge b-{{ task.status }}">{{ task.get_status_display }}</span>
         <span class="badge b-{{ task.priority }}">{{ task.get_priority_display }}</span>
+        {% if task.is_open_task %}<span class="badge" style="background:rgba(6,182,212,.12);color:#22d3ee;">🌐 Відкрита</span>{% endif %}
         {% if task.is_overdue %}<span class="badge b-urgent">⚠ Прострочено</span>{% endif %}
-        {% for tag in task.tags.all %}<span class="tag-pill" style="background:{{ tag.color }}22;color:{{ tag.color }};border:1px solid {{ tag.color }}44;">#{{ tag.name }}</span>{% endfor %}
+        {% for tag in task.tags.all %}<span class="tag-pill" style="background:{{ tag.color }}22;color:{{ tag.color }};border:1px solid {{ tag.color }}44;"># {{ tag.name }}</span>{% endfor %}
       </div>
-      <h1 style="font-size:17px;font-weight:600;margin-bottom:14px;{% if task.status == 'done' %}opacity:.4;text-decoration:line-through;{% endif %}">{{ task.title }}</h1>
+      <h1 style="font-size:18px;font-weight:700;margin-bottom:14px;line-height:1.4;{% if task.status == 'done' %}opacity:.4;text-decoration:line-through;{% endif %}">{{ task.title }}</h1>
       {% if task.description %}
-      <div style="background:var(--elev);border-radius:var(--rs);padding:12px;font-size:13px;color:var(--txt2);line-height:1.7;white-space:pre-wrap;">{{ task.description }}</div>
+      <div style="background:var(--elev);border-radius:var(--rs);padding:13px;font-size:13.5px;color:var(--txt2);line-height:1.75;white-space:pre-wrap;">{{ task.description }}</div>
       {% else %}<div style="color:var(--muted);font-size:13px;font-style:italic;">Опис відсутній</div>{% endif %}
+
+      {% if task.mentioned_users.all %}
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--brd);">
+        <div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Тегнуті</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          {% for u in task.mentioned_users.all %}
+          <span class="tagged-user"><div class="av" style="width:18px;height:18px;font-size:9px;">{{ u.username|first|upper }}</div>@{{ u.username }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
     </div>
 
-    <!-- Time Tracking -->
+    <!-- Time -->
     <div class="card" style="margin-bottom:12px;">
       <div style="font-size:13px;font-weight:600;margin-bottom:12px;">⏱ Час</div>
-      <div style="display:flex;gap:16px;margin-bottom:12px;">
-        <div><div style="font-size:11px;color:var(--muted);">ОЦІНКА</div><div style="font-size:16px;font-weight:600;">{{ task.estimated_hours|default:"—" }}h</div></div>
-        <div><div style="font-size:11px;color:var(--muted);">ЗАЛОГОВАНО</div><div style="font-size:16px;font-weight:600;color:#4ade80;">{{ task.logged_hours }}h</div></div>
+      <div style="display:flex;gap:20px;align-items:center;margin-bottom:12px;">
+        <div><div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;">Оцінка</div><div style="font-size:20px;font-weight:700;">{{ task.estimated_hours|default:"—" }}h</div></div>
+        <div><div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;">Залоговано</div><div style="font-size:20px;font-weight:700;color:#4ade80;">{{ task.logged_hours }}h</div></div>
         {% if task.estimated_hours and task.estimated_hours > 0 %}
-        <div style="flex:1;display:flex;align-items:flex-end;padding-bottom:4px;">
-          <div style="width:100%;height:6px;background:var(--active);border-radius:3px;">
-            <div style="width:{% widthratio task.logged_hours task.estimated_hours 100 %}%;height:100%;background:var(--green);border-radius:3px;max-width:100%;"></div>
-          </div>
+        <div style="flex:1;">
+          <div style="font-size:10.5px;color:var(--muted);margin-bottom:4px;">{% widthratio task.logged_hours task.estimated_hours 100 %}%</div>
+          <div style="height:6px;background:var(--active);border-radius:3px;"><div style="width:{% widthratio task.logged_hours task.estimated_hours 100 %}%;max-width:100%;height:100%;background:var(--green);border-radius:3px;"></div></div>
         </div>
         {% endif %}
       </div>
       <form method="post" style="display:flex;gap:8px;">
         {% csrf_token %}
-        <input type="number" name="log_hours" min="1" max="24" class="cu-input" style="max-width:90px;" placeholder="год">
-        <button type="submit" class="btn btn-ghost">+ Залогувати</button>
+        <input type="number" name="log_hours" min="1" max="24" class="cu-input" style="max-width:100px;" placeholder="год">
+        <button type="submit" class="btn btn-ghost btn-sm">+ Залогувати</button>
       </form>
     </div>
 
     <!-- Comments -->
     <div class="card">
-      <div style="font-size:13px;font-weight:600;margin-bottom:14px;">💬 Коментарі ({{ comments|length }})</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:16px;">💬 Коментарі <span style="color:var(--muted);font-weight:400;font-size:12px;">{{ comments|length }}</span></div>
+
       {% for comment in comments %}
-      <div style="display:flex;gap:10px;margin-bottom:14px;">
-        <div class="av" style="width:28px;height:28px;font-size:11px;flex-shrink:0;">{{ comment.author.username|first|upper }}</div>
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-            <span style="font-size:12.5px;font-weight:500;">{{ comment.author.username }}</span>
-            <span style="font-size:11px;color:var(--muted);">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
-            {% if comment.author == request.user %}
-            <form method="post" action="{% url 'tasks:comment_delete' comment.pk %}" style="margin-left:auto;">{% csrf_token %}<button type="submit" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;" onclick="return confirm('Видалити?')">✕</button></form>
+      <div style="margin-bottom:18px;" id="c{{ comment.pk }}">
+        <div style="display:flex;gap:10px;">
+          <div class="av" style="width:30px;height:30px;font-size:12px;flex-shrink:0;">{{ comment.author.username|first|upper }}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+              <span style="font-size:13px;font-weight:600;">{{ comment.author.username }}</span>
+              <span style="font-size:11px;color:var(--muted);">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+              {% for mu in comment.mentioned_users.all %}<span style="font-size:11px;color:#c4b5fd;background:var(--acc-s);padding:1px 6px;border-radius:10px;">@{{ mu.username }}</span>{% endfor %}
+              {% if comment.author == request.user %}
+              <form method="post" action="{% url 'tasks:comment_delete' comment.pk %}" style="margin-left:auto;">{% csrf_token %}<button type="submit" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;" onclick="return confirm('Видалити?')">✕</button></form>
+              {% endif %}
+            </div>
+            <div style="font-size:13.5px;color:var(--txt2);background:var(--elev);padding:11px 13px;border-radius:var(--rs);line-height:1.72;">{{ comment.render_text|safe }}</div>
+            <button onclick="toggleReply('rb{{ comment.pk }}')" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;margin-top:7px;padding:0;transition:color .12s;" onmouseover="this.style.color='var(--txt)'" onmouseout="this.style.color='var(--muted)'">↩ Відповісти</button>
+
+            <!-- Reply form -->
+            <div id="rb{{ comment.pk }}" class="reply-box">
+              <form method="post" style="display:flex;flex-direction:column;gap:7px;">
+                {% csrf_token %}
+                <input type="hidden" name="parent_id" value="{{ comment.pk }}">
+                <div style="position:relative;">{{ reply_form.text }}<div class="mention-drop" style="display:none;"></div></div>
+                <div style="display:flex;gap:6px;justify-content:flex-end;">
+                  <button type="button" onclick="toggleReply('rb{{ comment.pk }}')" class="btn btn-ghost btn-sm">Скасувати</button>
+                  <button type="submit" class="btn btn-primary btn-sm">Відповісти</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Replies -->
+            {% if comment.replies.all %}
+            <div style="border-left:2px solid var(--brd);padding-left:12px;margin-top:10px;display:flex;flex-direction:column;gap:12px;">
+              {% for reply in comment.replies.all %}
+              <div style="display:flex;gap:9px;" id="c{{ reply.pk }}">
+                <div class="av" style="width:24px;height:24px;font-size:10px;flex-shrink:0;">{{ reply.author.username|first|upper }}</div>
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap;">
+                    <span style="font-size:12.5px;font-weight:600;">{{ reply.author.username }}</span>
+                    <span style="font-size:11px;color:var(--muted);">{{ reply.created_at|date:"d.m.Y H:i" }}</span>
+                    {% for mu in reply.mentioned_users.all %}<span style="font-size:11px;color:#c4b5fd;background:var(--acc-s);padding:1px 6px;border-radius:10px;">@{{ mu.username }}</span>{% endfor %}
+                    {% if reply.author == request.user %}
+                    <form method="post" action="{% url 'tasks:comment_delete' reply.pk %}" style="margin-left:auto;">{% csrf_token %}<button type="submit" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;" onclick="return confirm('Видалити?')">✕</button></form>
+                    {% endif %}
+                  </div>
+                  <div style="font-size:13px;color:var(--txt2);background:var(--elev);padding:9px 12px;border-radius:var(--rs);line-height:1.65;">{{ reply.render_text|safe }}</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
             {% endif %}
           </div>
-          <div style="font-size:13px;color:var(--txt2);background:var(--elev);padding:9px 12px;border-radius:var(--rs);line-height:1.6;">{{ comment.text }}</div>
         </div>
       </div>
       {% empty %}
-      <div style="color:var(--muted);font-size:12.5px;margin-bottom:14px;">Коментарів ще немає</div>
+      <div style="color:var(--muted);font-size:13px;text-align:center;padding:16px;margin-bottom:14px;">Будь першим 💬</div>
       {% endfor %}
-      <form method="post" style="display:flex;gap:8px;align-items:flex-end;">
-        {% csrf_token %}
-        {{ comment_form.text }}
-        <button type="submit" class="btn btn-primary" style="flex-shrink:0;">Надіслати</button>
-      </form>
+
+      <!-- New comment -->
+      <div style="border-top:1px solid var(--brd);padding-top:14px;">
+        <div style="display:flex;gap:10px;">
+          <div class="av" style="width:30px;height:30px;font-size:12px;flex-shrink:0;">{{ request.user.username|first|upper }}</div>
+          <div style="flex:1;position:relative;">
+            <form method="post" id="main-form">
+              {% csrf_token %}
+              <div style="position:relative;">
+                {{ comment_form.text }}
+                <div id="main-drop" class="mention-drop" style="display:none;"></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+                <div style="font-size:11.5px;color:var(--muted);">Пиши <span style="color:#c4b5fd;font-weight:600;">@username</span> щоб тегнути</div>
+                <button type="submit" class="btn btn-primary btn-sm">Надіслати</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Sidebar -->
+  <!-- RIGHT SIDEBAR -->
   <div style="display:flex;flex-direction:column;gap:10px;">
+    <!-- Details -->
     <div class="card">
-      <div style="font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em;">Деталі</div>
-      {% if task.project %}<div style="margin-bottom:10px;"><div style="font-size:10.5px;color:var(--muted);margin-bottom:3px;">ПРОЄКТ</div><a href="{% url 'tasks:project_detail' task.project.pk %}" style="font-size:12.5px;color:#a78bfa;">[{{ task.project.key }}] {{ task.project.name }}</a></div>{% endif %}
-      {% if task.sprint %}<div style="margin-bottom:10px;"><div style="font-size:10.5px;color:var(--muted);margin-bottom:3px;">СПРИНТ</div><div style="font-size:12.5px;">{{ task.sprint.name }}</div></div>{% endif %}
-      <div style="margin-bottom:10px;"><div style="font-size:10.5px;color:var(--muted);margin-bottom:3px;">АВТОР</div><div style="display:flex;align-items:center;gap:6px;"><div class="av" style="width:20px;height:20px;font-size:10px;">{{ task.owner.username|first|upper }}</div><span style="font-size:12.5px;">{{ task.owner.username }}</span></div></div>
-      <div style="margin-bottom:10px;"><div style="font-size:10.5px;color:var(--muted);margin-bottom:3px;">ВИКОНАВЕЦЬ</div>{% if task.assignee %}<div style="display:flex;align-items:center;gap:6px;"><div class="av" style="width:20px;height:20px;font-size:10px;">{{ task.assignee.username|first|upper }}</div><span style="font-size:12.5px;">{{ task.assignee.username }}</span></div>{% else %}<span style="font-size:12.5px;color:var(--muted);">Не призначено</span>{% endif %}</div>
-      {% if task.due_date %}<div style="margin-bottom:10px;"><div style="font-size:10.5px;color:var(--muted);margin-bottom:3px;">ДЕДЛАЙН</div><div style="font-size:12.5px;color:{% if task.is_overdue %}var(--red){% else %}var(--txt){% endif %};">{{ task.due_date|date:"d.m.Y" }}</div></div>{% endif %}
-      <div><div style="font-size:10.5px;color:var(--muted);margin-bottom:3px;">СТВОРЕНО</div><div style="font-size:11.5px;color:var(--txt2);">{{ task.created_at|date:"d.m.Y H:i" }}</div></div>
+      <div style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;">Деталі задачі</div>
+      {% if task.project %}<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">ПРОЄКТ</div><a href="{% url 'tasks:project_detail' task.project.pk %}" style="font-size:12.5px;color:#c4b5fd;">[{{ task.project.key }}] {{ task.project.name }}</a></div>{% endif %}
+      {% if task.sprint %}<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">СПРИНТ</div><div style="font-size:12.5px;">{{ task.sprint.name }}</div></div>{% endif %}
+      <div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">АВТОР</div><div style="display:flex;align-items:center;gap:7px;"><div class="av" style="width:22px;height:22px;font-size:10px;">{{ task.owner.username|first|upper }}</div><span style="font-size:12.5px;">{{ task.owner.username }}</span></div></div>
+      <div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">ВИКОНАВЕЦЬ</div>{% if task.assignee %}<div style="display:flex;align-items:center;gap:7px;"><div class="av" style="width:22px;height:22px;font-size:10px;">{{ task.assignee.username|first|upper }}</div><span style="font-size:12.5px;">{{ task.assignee.username }}</span></div>{% else %}<span style="font-size:12.5px;color:var(--muted);">Не призначено</span>{% endif %}</div>
+      {% if task.due_date %}<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">ДЕДЛАЙН</div><div style="font-size:12.5px;color:{% if task.is_overdue %}var(--red){% else %}var(--txt){% endif %};">{{ task.due_date|date:"d.m.Y" }}</div></div>{% endif %}
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">СТВОРЕНО</div><div style="font-size:11.5px;color:var(--txt2);">{{ task.created_at|date:"d.m.Y H:i" }}</div></div>
     </div>
+
+    <!-- Quick status change -->
+    <div class="card">
+      <div style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Змінити статус</div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        {% for val, label in task.STATUS_CHOICES %}
+        <form method="post" action="{% url 'tasks:task_status' task.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="status" value="{{ val }}">
+          <button type="submit" style="width:100%;background:{% if task.status == val %}var(--acc-s){% else %}transparent{% endif %};border:1px solid {% if task.status == val %}rgba(139,92,246,.3){% else %}var(--brd){% endif %};color:{% if task.status == val %}#c4b5fd{% else %}var(--txt2){% endif %};padding:6px 10px;border-radius:var(--rs);font-size:12.5px;font-family:inherit;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;transition:all .12s;">
+            <span class="badge b-{{ val }}" style="pointer-events:none;">{{ label }}</span>
+          </button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if task.is_open_task and not task.assignee and request.user != task.owner %}
+    <form method="post" action="{% url 'tasks:take_task' task.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success" style="width:100%;justify-content:center;">🙋 Взяти цю задачу</button>
+    </form>
+    {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const allUsers = {{ all_users|safe }};
+
+function toggleReply(id) {
+  const b = document.getElementById(id);
+  b.classList.toggle('open');
+  if (b.classList.contains('open')) b.querySelector('textarea').focus();
+}
+
+function setupMention(ta, drop) {
+  let start = -1;
+  ta.addEventListener('input', function() {
+    const v = this.value, pos = this.selectionStart;
+    let at = -1;
+    for (let i = pos-1; i >= 0; i--) {
+      if (v[i] === '@') { at = i; break; }
+      if (v[i] === ' ' || v[i] === '\n') break;
+    }
+    if (at === -1) { drop.style.display = 'none'; start = -1; return; }
+    start = at;
+    const q = v.slice(at+1, pos).toLowerCase();
+    const matches = allUsers.filter(u => u.toLowerCase().startsWith(q)).slice(0, 8);
+    if (!matches.length) { drop.style.display = 'none'; return; }
+    drop.innerHTML = matches.map((u,i) =>
+      `<div class="m-item${i===0?' active':''}" data-u="${u}"><div class="m-av">${u[0].toUpperCase()}</div>@${u}</div>`
+    ).join('');
+    drop.style.display = 'block';
+    drop.querySelectorAll('.m-item').forEach(it => {
+      it.addEventListener('mousedown', e => { e.preventDefault(); insert(ta, start, it.dataset.u); drop.style.display='none'; });
+    });
+  });
+  ta.addEventListener('keydown', function(e) {
+    if (drop.style.display === 'none') return;
+    const items = drop.querySelectorAll('.m-item'), active = drop.querySelector('.m-item.active');
+    let idx = [...items].indexOf(active);
+    if (e.key === 'ArrowDown') { e.preventDefault(); active?.classList.remove('active'); items[Math.min(idx+1,items.length-1)]?.classList.add('active'); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); active?.classList.remove('active'); items[Math.max(idx-1,0)]?.classList.add('active'); }
+    else if (e.key === 'Enter' || e.key === 'Tab') { if (active) { e.preventDefault(); insert(this, start, active.dataset.u); drop.style.display='none'; } }
+    else if (e.key === 'Escape') drop.style.display = 'none';
+  });
+  document.addEventListener('click', e => { if (!drop.contains(e.target) && e.target !== ta) drop.style.display='none'; });
+}
+
+function insert(ta, at, username) {
+  const pos = ta.selectionStart;
+  ta.value = ta.value.slice(0, at) + '@' + username + ' ' + ta.value.slice(pos);
+  const np = at + username.length + 2;
+  ta.setSelectionRange(np, np); ta.focus();
+}
+
+// Main comment
+const mainTa = document.getElementById('comment-ta');
+const mainDrop = document.getElementById('main-drop');
+if (mainTa && mainDrop) setupMention(mainTa, mainDrop);
+
+// Reply textareas
+document.querySelectorAll('.reply-box').forEach(box => {
+  const ta = box.querySelector('textarea');
+  const drop = box.querySelector('.mention-drop');
+  if (ta && drop) { ta.parentNode.style.position='relative'; setupMention(ta, drop); }
+});
+</script>
 {% endblock %}

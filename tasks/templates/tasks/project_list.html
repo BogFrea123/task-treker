@@ -2,32 +2,28 @@
 {% block title %}Проєкти{% endblock %}
 {% block page_title %}Проєкти{% endblock %}
 {% block np %}active{% endblock %}
-{% block topbar_actions %}<a href="{% url 'tasks:project_create' %}" class="btn btn-ghost btn-sm">+ Новий проєкт</a>{% endblock %}
+{% block topbar_actions %}<a href="{% url 'tasks:project_create' %}" class="btn btn-ghost btn-sm">+ Новий</a>{% endblock %}
 {% block content %}
 {% if projects %}
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
 {% for p in projects %}
-<a href="{% url 'tasks:project_detail' p.pk %}" class="card" style="display:block;border-top:3px solid {{ p.color }};transition:border-color .15s;">
+<a href="{% url 'tasks:project_detail' p.pk %}" class="card" style="display:block;border-top:3px solid {{ p.color }};transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 24px rgba(0,0,0,.3)'" onmouseout="this.style.boxShadow=''">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
     <div>
-      <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.06em;">{{ p.key }}</div>
+      <div style="font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.07em;">{{ p.key }}</div>
       <div style="font-size:14px;font-weight:600;margin-top:2px;">{{ p.name }}</div>
     </div>
-    <a href="{% url 'tasks:project_update' p.pk %}" class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">✎</a>
+    {% if p.is_public %}<span class="badge" style="background:rgba(6,182,212,.1);color:#22d3ee;font-size:10px;">🌐 Публічний</span>{% endif %}
   </div>
   {% if p.description %}<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">{{ p.description|truncatechars:80 }}</div>{% endif %}
   <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);">
     <span>{{ p.task_count }} задач</span>
-    {% if p.task_count %}<span style="color:var(--green);">{{ p.done_count }} виконано</span>{% endif %}
+    {% if p.done_count %}<span style="color:var(--green);">✓ {{ p.done_count }} виконано</span>{% endif %}
   </div>
 </a>
 {% endfor %}
 </div>
 {% else %}
-<div class="card"><div class="empty">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-  <p>Проєктів ще немає</p>
-  <a href="{% url 'tasks:project_create' %}" class="btn btn-primary" style="margin-top:12px;">Створити перший проєкт</a>
-</div></div>
+<div class="card"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><p>Проєктів немає</p><a href="{% url 'tasks:project_create' %}" class="btn btn-primary btn-sm" style="margin-top:12px;">Створити перший</a></div></div>
 {% endif %}
 {% endblock %}

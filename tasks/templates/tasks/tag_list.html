@@ -8,14 +8,7 @@
 {% if tags %}
 <div class="card" style="padding:0;overflow:hidden;">
 <table class="cu-table"><thead><tr><th>Тег</th><th>Задач</th><th></th></tr></thead><tbody>
-{% for tag in tags %}
-<tr><td><span class="tag-pill" style="background:{{ tag.color }}22;color:{{ tag.color }};border:1px solid {{ tag.color }}44;font-size:12.5px;padding:3px 10px;">#{{ tag.name }}</span></td>
-<td style="color:var(--muted);font-size:12.5px;">{{ tag.task_count }}</td>
-<td><form method="post" action="{% url 'tasks:tag_delete' tag.pk %}" style="display:inline;">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Видалити?')">✕</button></form></td></tr>
-{% endfor %}
+{% for tag in tags %}<tr><td><span class="tag-pill" style="background:{{ tag.color }}22;color:{{ tag.color }};border:1px solid {{ tag.color }}44;font-size:12.5px;padding:3px 10px;"># {{ tag.name }}</span></td><td style="color:var(--muted);font-size:12.5px;">{{ tag.task_count }}</td><td><form method="post" action="{% url 'tasks:tag_delete' tag.pk %}" style="display:inline;">{% csrf_token %}<button type="submit" class="btn btn-danger btn-xs" onclick="return confirm('Видалити?')">✕</button></form></td></tr>{% endfor %}
 </tbody></table></div>
-{% else %}
-<div class="card"><div class="empty"><p>Тегів немає</p><a href="{% url 'tasks:tag_create' %}" class="btn btn-primary" style="margin-top:12px;">Створити тег</a></div></div>
-{% endif %}
-</div>
-{% endblock %}
+{% else %}<div class="card"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><p>Тегів немає</p><a href="{% url 'tasks:tag_create' %}" class="btn btn-primary btn-sm" style="margin-top:12px;">Створити тег</a></div></div>{% endif %}
+</div>{% endblock %}

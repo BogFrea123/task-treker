@@ -1,166 +1,152 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TaskFlow — Управління задачами</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Task Tracking — TaskFlow</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0d0d0f;color:#e8e8f0;font-family:'Inter',sans-serif;}
+body{background:#09090b;color:#f4f4f5;font-family:'Inter',sans-serif;}
 a{color:inherit;text-decoration:none;}
-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;background:#0d0d0fdd;backdrop-filter:blur(12px);z-index:100;}
-.logo{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;}
-.logo-ic{width:32px;height:32px;background:#7c3aed;border-radius:8px;display:flex;align-items:center;justify-content:center;}
-.logo-ic svg{width:17px;height:17px;fill:white;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;background:rgba(9,9,11,.85);backdrop-filter:blur(16px);z-index:100;}
+.logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;}
+.logo-m{width:32px;height:32px;background:linear-gradient(135deg,#8b5cf6,#6366f1);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(139,92,246,.4);}
+.logo-m svg{width:16px;height:16px;fill:white;}
+.logo-n{letter-spacing:-.02em;}
+.logo-n span{color:#8b5cf6;}
 .nav-links{display:flex;align-items:center;gap:8px;}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:13.5px;font-weight:500;border:1px solid transparent;transition:all .14s;cursor:pointer;font-family:inherit;}
-.btn-ghost{background:transparent;color:#8b8b9e;border-color:rgba(255,255,255,0.12);}
-.btn-ghost:hover{background:#1e1e24;color:#e8e8f0;}
-.btn-primary{background:#7c3aed;color:white;}
-.btn-primary:hover{background:#6d28d9;}
-.btn-xl{padding:12px 28px;font-size:15px;border-radius:8px;}
-.hero{text-align:center;padding:80px 24px 60px;}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,.15);color:#a78bfa;border:1px solid rgba(124,58,237,.25);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:24px;}
-.hero h1{font-size:52px;font-weight:800;line-height:1.15;letter-spacing:-.02em;margin-bottom:20px;background:linear-gradient(135deg,#e8e8f0 30%,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.hero p{font-size:17px;color:#8b8b9e;max-width:540px;margin:0 auto 36px;line-height:1.65;}
-.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
-.stats-row{display:flex;justify-content:center;gap:40px;padding:32px 24px;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);margin:0 48px;}
-.stat-item{text-align:center;}
-.stat-num{font-size:28px;font-weight:700;color:#e8e8f0;}
-.stat-lbl{font-size:12px;color:#55555f;margin-top:2px;}
-.features{padding:64px 48px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:1100px;margin:0 auto;}
-.feat-card{background:#16161a;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;}
-.feat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
-.feat-icon svg{width:18px;height:18px;}
-.feat-title{font-size:14px;font-weight:600;margin-bottom:6px;}
-.feat-desc{font-size:13px;color:#55555f;line-height:1.6;}
-.demo-section{padding:48px;max-width:1100px;margin:0 auto;}
-.demo-section h2{font-size:22px;font-weight:700;margin-bottom:6px;}
-.demo-section p{color:#55555f;font-size:13px;margin-bottom:20px;}
-.demo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
-.demo-card{background:#16161a;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;position:relative;}
-.demo-card-title{font-size:13.5px;font-weight:500;margin-bottom:8px;}
-.demo-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:6px;font-size:13px;font-weight:500;border:none;transition:all .13s;cursor:pointer;font-family:inherit;}
+.btn-ghost{background:transparent;color:#a1a1aa;border:1px solid rgba(255,255,255,.12);}
+.btn-ghost:hover{background:#18181b;color:#f4f4f5;}
+.btn-primary{background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;box-shadow:0 2px 12px rgba(139,92,246,.35);}
+.btn-primary:hover{opacity:.9;}
+.btn-lg{padding:11px 28px;font-size:15px;border-radius:8px;}
+
+/* Hero */
+.hero{text-align:center;padding:72px 24px 56px;position:relative;}
+.hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(139,92,246,.12) 0%,transparent 70%);pointer-events:none;}
+.hero-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(139,92,246,.1);color:#c4b5fd;border:1px solid rgba(139,92,246,.2);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:24px;}
+.hero h1{font-size:54px;font-weight:800;line-height:1.12;letter-spacing:-.03em;margin-bottom:18px;}
+.hero h1 span{background:linear-gradient(135deg,#8b5cf6,#6366f1,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero p{font-size:17px;color:#71717a;max-width:520px;margin:0 auto 36px;line-height:1.7;}
+.hero-btns{display:flex;gap:12px;justify-content:center;}
+.hero-btns .btn-ghost{padding:11px 24px;font-size:15px;border-radius:8px;}
+
+/* Stats */
+.stats-bar{display:flex;justify-content:center;gap:0;margin:0 auto;max-width:700px;border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;background:#111113;}
+.stat-i{flex:1;text-align:center;padding:20px 16px;border-right:1px solid rgba(255,255,255,.06);}
+.stat-i:last-child{border-right:none;}
+.stat-n{font-size:26px;font-weight:700;}
+.stat-l{font-size:12px;color:#52525b;margin-top:2px;}
+
+/* Features */
+.features{padding:64px 48px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.feat{background:#111113;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:22px;transition:border-color .15s;}
+.feat:hover{border-color:rgba(139,92,246,.3);}
+.feat-ic{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.feat-ic svg{width:18px;height:18px;}
+.feat-t{font-size:14px;font-weight:600;margin-bottom:6px;}
+.feat-d{font-size:13px;color:#52525b;line-height:1.65;}
+
+/* Public board preview */
+.board-preview{padding:48px;max-width:1100px;margin:0 auto;}
+.board-preview h2{font-size:20px;font-weight:700;margin-bottom:6px;}
+.board-preview .sub{color:#52525b;font-size:13px;margin-bottom:20px;}
+.open-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+.open-card{background:#111113;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;transition:border-color .15s,transform .15s;}
+.open-card:hover{border-color:rgba(139,92,246,.3);transform:translateY(-2px);}
+.oc-title{font-size:13.5px;font-weight:500;margin-bottom:8px;line-height:1.4;}
+.oc-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500;}
-.b-todo{background:rgba(255,255,255,.07);color:#8b8b9e;}
-.b-in_progress{background:rgba(59,130,246,.15);color:#60a5fa;}
-.b-review{background:rgba(245,158,11,.15);color:#fbbf24;}
-.b-done{background:rgba(34,197,94,.15);color:#4ade80;}
-.b-low{background:rgba(255,255,255,.07);color:#8b8b9e;}
-.b-medium{background:rgba(59,130,246,.15);color:#60a5fa;}
-.b-high{background:rgba(245,158,11,.15);color:#fbbf24;}
-.b-urgent{background:rgba(239,68,68,.15);color:#f87171;}
-.b-task{background:rgba(59,130,246,.15);color:#60a5fa;}
-.b-bug{background:rgba(239,68,68,.15);color:#f87171;}
-.b-story{background:rgba(34,197,94,.15);color:#4ade80;}
-.b-epic{background:rgba(124,58,237,.15);color:#a78bfa;}
-.cta{text-align:center;padding:64px 24px;}
-.cta h2{font-size:28px;font-weight:700;margin-bottom:10px;}
-.cta p{color:#55555f;font-size:14px;margin-bottom:28px;}
-footer{text-align:center;padding:24px;color:#2a2a30;font-size:12px;border-top:1px solid rgba(255,255,255,.05);}
+.b-todo{background:rgba(82,82,91,.25);color:#a1a1aa;}
+.b-in_progress{background:rgba(59,130,246,.12);color:#60a5fa;}
+.b-done{background:rgba(34,197,94,.12);color:#4ade80;}
+.b-low{background:rgba(82,82,91,.2);color:#71717a;}
+.b-medium{background:rgba(59,130,246,.12);color:#60a5fa;}
+.b-high{background:rgba(245,158,11,.12);color:#fbbf24;}
+.b-urgent{background:rgba(239,68,68,.12);color:#f87171;}
+.b-task{background:rgba(59,130,246,.12);color:#60a5fa;}
+.b-bug{background:rgba(239,68,68,.12);color:#f87171;}
+.b-story{background:rgba(34,197,94,.12);color:#4ade80;}
+.b-epic{background:rgba(139,92,246,.12);color:#c4b5fd;}
+
+/* CTA */
+.cta{text-align:center;padding:64px 24px;position:relative;}
+.cta::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:500px;height:200px;background:radial-gradient(ellipse,rgba(99,102,241,.1) 0%,transparent 70%);pointer-events:none;}
+.cta h2{font-size:30px;font-weight:700;margin-bottom:10px;}
+.cta p{color:#52525b;font-size:14px;margin-bottom:28px;}
+footer{text-align:center;padding:24px;color:#27272a;font-size:12px;border-top:1px solid rgba(255,255,255,.05);}
 </style>
 </head>
 <body>
-
 <nav>
   <div class="logo">
-    <div class="logo-ic"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-    TaskFlow
+    <div class="logo-m"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+    <span class="logo-n">Task<span>Flow</span></span>
   </div>
   <div class="nav-links">
+    <a href="{% url 'tasks:public_board' %}" class="btn btn-ghost">Відкриті задачі</a>
     <a href="{% url 'login' %}" class="btn btn-ghost">Увійти</a>
     <a href="{% url 'tasks:register' %}" class="btn btn-primary">Реєстрація</a>
   </div>
 </nav>
 
 <section class="hero">
-  <div class="hero-badge">✦ Jira-подібний трекер задач</div>
-  <h1>Керуй задачами як<br>справжня команда</h1>
-  <p>Проєкти, спринти, канбан-дошка, коментарі та логування часу — все в одному місці з темним інтерфейсом у стилі Jira.</p>
+  <div class="hero-chip">✦ Task Tracking System</div>
+  <h1>Керуй задачами.<br><span>Разом з командою.</span></h1>
+  <p>Проєкти, спринти, Kanban-дошка, коментарі з @mentions — все для ефективної роботи команди.</p>
   <div class="hero-btns">
-    <a href="{% url 'tasks:register' %}" class="btn btn-primary btn-xl">Почати безкоштовно</a>
-    <a href="{% url 'login' %}" class="btn btn-ghost btn-xl">Увійти</a>
+    <a href="{% url 'tasks:register' %}" class="btn btn-primary btn-lg">Почати безкоштовно →</a>
+    <a href="{% url 'tasks:public_board' %}" class="btn-ghost btn" style="padding:11px 24px;font-size:15px;border-radius:8px;">Переглянути задачі</a>
   </div>
 </section>
 
-<div class="stats-row">
-  <div class="stat-item"><div class="stat-num">{{ total_tasks }}</div><div class="stat-lbl">Задач створено</div></div>
-  <div class="stat-item"><div class="stat-num">{{ total_users }}</div><div class="stat-lbl">Користувачів</div></div>
-  <div class="stat-item"><div class="stat-num">{{ total_projects }}</div><div class="stat-lbl">Активних проєктів</div></div>
+<div style="padding:0 48px;margin-bottom:48px;">
+  <div class="stats-bar">
+    <div class="stat-i"><div class="stat-n">{{ total_tasks }}</div><div class="stat-l">Задач</div></div>
+    <div class="stat-i"><div class="stat-n">{{ total_users }}</div><div class="stat-l">Користувачів</div></div>
+    <div class="stat-i"><div class="stat-n">{{ total_projects }}</div><div class="stat-l">Проєктів</div></div>
+  </div>
 </div>
 
 <div class="features">
-  <div class="feat-card">
-    <div class="feat-icon" style="background:rgba(124,58,237,.15);">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-    </div>
-    <div class="feat-title">Проєкти та епіки</div>
-    <div class="feat-desc">Організуй роботу по проєктах, запрошуй учасників та веди окремі беклоги.</div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-icon" style="background:rgba(59,130,246,.15);">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
-    </div>
-    <div class="feat-title">Спринти та Kanban</div>
-    <div class="feat-desc">Плануй спринти, переміщуй задачі drag-and-drop між колонками.</div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-icon" style="background:rgba(34,197,94,.15);">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-    </div>
-    <div class="feat-title">Коментарі</div>
-    <div class="feat-desc">Обговорюй задачі прямо в трекері — коментарі з датою та автором.</div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-icon" style="background:rgba(245,158,11,.15);">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-    </div>
-    <div class="feat-title">Логування часу</div>
-    <div class="feat-desc">Вказуй оцінку часу та логуй витрачені години на кожну задачу.</div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-icon" style="background:rgba(239,68,68,.15);">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-    </div>
-    <div class="feat-title">Призначення задач</div>
-    <div class="feat-desc">Призначай задачі учасникам команди та фільтруй за виконавцем.</div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-icon" style="background:rgba(124,58,237,.15);">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-    </div>
-    <div class="feat-title">Теги та фільтри</div>
-    <div class="feat-desc">Додавай кольорові теги, фільтруй по типу, пріоритету та статусу.</div>
-  </div>
+  <div class="feat"><div class="feat-ic" style="background:rgba(139,92,246,.15);"><svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg></div><div class="feat-t">Kanban з drag & drop</div><div class="feat-d">Переміщуй задачі між колонками в реальному часі без перезавантаження.</div></div>
+  <div class="feat"><div class="feat-ic" style="background:rgba(59,130,246,.15);"><svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><div class="feat-t">Коментарі з @mentions</div><div class="feat-d">Обговорюй задачі, відповідай на коментарі, тегни колег через @username.</div></div>
+  <div class="feat"><div class="feat-ic" style="background:rgba(34,197,94,.15);"><svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="feat-t">Відкриті задачі</div><div class="feat-d">Публікуй задачі для всіх — як на фрілансі. Інші можуть брати задачі собі.</div></div>
+  <div class="feat"><div class="feat-ic" style="background:rgba(245,158,11,.15);"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div><div class="feat-t">Проєкти та спринти</div><div class="feat-d">Організовуй роботу по проєктах, плануй спринти, веди беклог.</div></div>
+  <div class="feat"><div class="feat-ic" style="background:rgba(239,68,68,.15);"><svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div><div class="feat-t">Команда та ролі</div><div class="feat-d">Запрошуй учасників, призначай задачі, налаштовуй публічні проєкти.</div></div>
+  <div class="feat"><div class="feat-ic" style="background:rgba(6,182,212,.15);"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="feat-t">Логування часу</div><div class="feat-d">Встановлюй оцінки, логуй витрачені години, відстежуй прогрес.</div></div>
 </div>
 
-{% if demo_tasks %}
-<div class="demo-section">
-  <h2>Live Demo</h2>
-  <p>Реальні задачі з платформи — переглядай без реєстрації</p>
-  <div class="demo-grid">
-    {% for task in demo_tasks %}
-    <div class="demo-card">
-      <div class="demo-card-title">{{ task.title }}</div>
-      <div class="demo-card-meta">
+{% if open_tasks %}
+<div class="board-preview">
+  <h2>Відкриті задачі</h2>
+  <div class="sub">Задачі які шукають виконавця — реєструйся і бери будь-яку</div>
+  <div class="open-grid">
+    {% for task in open_tasks %}
+    <div class="open-card">
+      <div class="oc-title">{{ task.title }}</div>
+      <div class="oc-meta">
         <span class="badge b-{{ task.issue_type }}">{{ task.get_issue_type_display }}</span>
-        <span class="badge b-{{ task.status }}">{{ task.get_status_display }}</span>
         <span class="badge b-{{ task.priority }}">{{ task.get_priority_display }}</span>
-        {% if task.assignee %}<span style="font-size:11px;color:#55555f;">→ {{ task.assignee.username }}</span>{% endif %}
+        {% if task.project %}<span style="font-size:11px;color:#52525b;">{{ task.project.key }}</span>{% endif %}
+        <span style="font-size:11px;color:#52525b;margin-left:auto;">{{ task.owner.username }}</span>
       </div>
     </div>
     {% endfor %}
+  </div>
+  <div style="text-align:center;margin-top:20px;">
+    <a href="{% url 'tasks:public_board' %}" class="btn btn-ghost" style="font-size:14px;padding:9px 20px;">Переглянути всі →</a>
   </div>
 </div>
 {% endif %}
 
 <div class="cta">
-  <h2>Готовий почати?</h2>
-  <p>Реєстрація займає менше хвилини. Безкоштовно.</p>
-  <a href="{% url 'tasks:register' %}" class="btn btn-primary btn-xl">Створити акаунт →</a>
+  <h2>Готовий керувати задачами?</h2>
+  <p>Безкоштовно. Без кредитної картки.</p>
+  <a href="{% url 'tasks:register' %}" class="btn btn-primary btn-lg">Створити акаунт</a>
 </div>
 
-<footer>TaskFlow © 2024 — Jira-подібний трекер задач</footer>
+<footer>TaskFlow © 2024 — Task Tracking System</footer>
 </body>
 </html>

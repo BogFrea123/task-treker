@@ -5,29 +5,19 @@
 <div style="max-width:560px;">
   <a href="{% url 'tasks:project_list' %}" style="font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;margin-bottom:14px;">← Назад</a>
   <div class="card">
-    <form method="post" novalidate>
-      {% csrf_token %}
+    <form method="post" novalidate>{% csrf_token %}
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
-        <div class="form-group">
-          <label class="form-label">Назва *</label>{{ form.name }}
-          {% if form.name.errors %}<div class="form-err">{{ form.name.errors.0 }}</div>{% endif %}
-        </div>
-        <div class="form-group">
-          <label class="form-label">Ключ *</label>{{ form.key }}
-          {% if form.key.errors %}<div class="form-err">{{ form.key.errors.0 }}</div>{% endif %}
-        </div>
+        <div class="form-group"><label class="form-label">Назва *</label>{{ form.name }}{% if form.name.errors %}<div class="form-err">{{ form.name.errors.0 }}</div>{% endif %}</div>
+        <div class="form-group"><label class="form-label">Ключ *</label>{{ form.key }}{% if form.key.errors %}<div class="form-err">{{ form.key.errors.0 }}</div>{% endif %}</div>
       </div>
       <div class="form-group"><label class="form-label">Опис</label>{{ form.description }}</div>
-      <div class="form-group"><label class="form-label">Колір</label>{{ form.color }}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label class="form-label">Колір</label><div style="display:flex;align-items:center;gap:10px;">{{ form.color }}<span style="font-size:12px;color:var(--muted);">Колір проєкту</span></div></div>
+        <div class="form-group"><label class="form-label">Видимість</label><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--txt2);">{{ form.is_public }} Публічний проєкт</label></div>
+      </div>
       <div class="form-group">
         <label class="form-label">Учасники</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          {% for choice in form.members %}
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--txt2);cursor:pointer;background:var(--elev);padding:5px 10px;border-radius:20px;border:1px solid var(--brd);">
-            {{ choice.tag }} {{ choice.choice_label }}
-          </label>
-          {% endfor %}
-        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;">{% for c in form.members %}<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--txt2);cursor:pointer;background:var(--elev);padding:4px 10px;border-radius:20px;border:1px solid var(--brd);">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}</div>
       </div>
       <div style="display:flex;justify-content:space-between;padding-top:14px;border-top:1px solid var(--brd);">
         <a href="{% url 'tasks:project_list' %}" class="btn btn-ghost">Скасувати</a>

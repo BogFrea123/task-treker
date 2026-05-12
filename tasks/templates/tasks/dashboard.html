@@ -5,64 +5,84 @@
 {% block topbar_actions %}
 <a href="{% url 'tasks:project_create' %}" class="btn btn-ghost btn-sm">+ Проєкт</a>
 {% endblock %}
+
 {% block content %}
 <div class="stats-grid">
-  <div class="stat-card"><div class="stat-dot" style="background:#7c3aed"></div><div class="stat-num">{{ total }}</div><div class="stat-lbl">Всього задач</div></div>
-  <div class="stat-card"><div class="stat-dot" style="background:#6b7280"></div><div class="stat-num">{{ todo_count }}</div><div class="stat-lbl">To Do</div></div>
-  <div class="stat-card"><div class="stat-dot" style="background:#3b82f6"></div><div class="stat-num">{{ in_progress_count }}</div><div class="stat-lbl">In Progress</div></div>
-  <div class="stat-card"><div class="stat-dot" style="background:#22c55e"></div><div class="stat-num">{{ done_count }}</div><div class="stat-lbl">Виконано</div></div>
-  <div class="stat-card"><div class="stat-dot" style="background:#ef4444"></div><div class="stat-num">{{ overdue_count }}</div><div class="stat-lbl">Прострочено</div></div>
-  <div class="stat-card"><div class="stat-dot" style="background:#f59e0b"></div><div class="stat-num">{{ logged_hours }}h</div><div class="stat-lbl">Залоговано годин</div></div>
+  <div class="stat-card" style="--line-color:#8b5cf6;"><div class="stat-num">{{ total }}</div><div class="stat-lbl">Всього задач</div></div>
+  <div class="stat-card" style="--line-color:#6b7280;"><div class="stat-num">{{ todo_count }}</div><div class="stat-lbl">To Do</div></div>
+  <div class="stat-card" style="--line-color:#3b82f6;"><div class="stat-num">{{ in_progress_count }}</div><div class="stat-lbl">In Progress</div></div>
+  <div class="stat-card" style="--line-color:#22c55e;"><div class="stat-num">{{ done_count }}</div><div class="stat-lbl">Виконано</div></div>
+  <div class="stat-card" style="--line-color:#ef4444;"><div class="stat-num">{{ overdue_count }}</div><div class="stat-lbl">Прострочено</div></div>
+  <div class="stat-card" style="--line-color:#f59e0b;"><div class="stat-num">{{ logged_hours }}h</div><div class="stat-lbl">Залоговано</div></div>
 </div>
-<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:14px;">
+
+<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:14px;">
+  <!-- Recent tasks -->
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <span style="font-size:13px;font-weight:600;">Останні оновлення</span>
-      <a href="{% url 'tasks:task_list' %}" class="btn btn-ghost btn-sm">Всі</a>
+      <a href="{% url 'tasks:task_list' %}" class="btn btn-ghost btn-sm">Всі →</a>
     </div>
     {% for task in recent_tasks %}
-    <a href="{% url 'tasks:task_detail' task.pk %}" style="display:flex;align-items:center;gap:10px;padding:7px;border-radius:5px;margin-bottom:2px;transition:background .12s;">
+    <a href="{% url 'tasks:task_detail' task.pk %}" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--rs);margin-bottom:2px;transition:background .12s;" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
       <div class="pdot pdot-{{ task.priority }}"></div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;{% if task.status == 'done' %}opacity:.45;text-decoration:line-through;{% endif %}white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ task.title }}</div>
-        {% if task.project %}<div style="font-size:11px;color:var(--muted);">{{ task.project.key }}</div>{% endif %}
+        <div style="font-size:13px;font-weight:500;{% if task.status == 'done' %}opacity:.4;text-decoration:line-through;{% endif %}white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ task.title }}</div>
+        <div style="font-size:11px;color:var(--muted);">{{ task.get_issue_number }}{% if task.project %} · {{ task.project.key }}{% endif %}</div>
       </div>
       <span class="badge b-{{ task.status }}">{{ task.get_status_display }}</span>
     </a>
     {% empty %}
-    <div class="empty"><p>Немає задач</p></div>
+    <div class="empty" style="padding:24px;"><p>Задач ще немає</p><a href="{% url 'tasks:task_create' %}" class="btn btn-primary btn-sm" style="margin-top:10px;">Створити першу</a></div>
     {% endfor %}
   </div>
+
   <div style="display:flex;flex-direction:column;gap:14px;">
+    <!-- Urgent -->
     <div class="card">
       <div style="font-size:13px;font-weight:600;margin-bottom:12px;">🔥 Термінові</div>
       {% for task in urgent_tasks %}
-      <a href="{% url 'tasks:task_detail' task.pk %}" style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:5px;margin-bottom:2px;">
-        <div style="width:3px;height:28px;border-radius:2px;background:var(--red);flex-shrink:0;"></div>
+      <a href="{% url 'tasks:task_detail' task.pk %}" style="display:flex;align-items:center;gap:8px;padding:7px;border-radius:var(--rs);margin-bottom:2px;transition:background .12s;" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
+        <div style="width:3px;height:32px;border-radius:2px;background:var(--red);flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ task.title }}</div>
           {% if task.due_date %}<div style="font-size:11px;color:{% if task.is_overdue %}var(--red){% else %}var(--muted){% endif %};">{{ task.due_date|date:"d.m.Y" }}</div>{% endif %}
         </div>
       </a>
       {% empty %}
-      <div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">Немає термінових 🎉</div>
+      <div style="text-align:center;padding:14px;color:var(--muted);font-size:12px;">Немає термінових 🎉</div>
       {% endfor %}
     </div>
+
+    <!-- Projects -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <span style="font-size:13px;font-weight:600;">Мої проєкти</span>
-        <a href="{% url 'tasks:project_list' %}" class="btn btn-ghost btn-sm">Всі</a>
+        <a href="{% url 'tasks:project_list' %}" class="btn btn-ghost btn-sm">Всі →</a>
       </div>
-      {% for project in my_projects %}
-      <a href="{% url 'tasks:project_detail' project.pk %}" style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:5px;margin-bottom:2px;">
-        <div style="width:8px;height:8px;border-radius:50%;background:{{ project.color }};flex-shrink:0;"></div>
-        <span style="flex:1;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ project.name }}</span>
-        <span style="font-size:11px;color:var(--muted);">{{ project.task_count }}</span>
+      {% for p in my_projects %}
+      <a href="{% url 'tasks:project_detail' p.pk %}" style="display:flex;align-items:center;gap:8px;padding:7px;border-radius:var(--rs);margin-bottom:2px;transition:background .12s;" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
+        <div style="width:8px;height:8px;border-radius:50%;background:{{ p.color }};flex-shrink:0;"></div>
+        <span style="flex:1;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</span>
+        <span style="font-size:11px;color:var(--muted);">{{ p.task_count }}</span>
       </a>
       {% empty %}
-      <div style="text-align:center;padding:12px;color:var(--muted);font-size:12px;"><a href="{% url 'tasks:project_create' %}" style="color:#a78bfa;">+ Створити проєкт</a></div>
+      <div style="color:var(--muted);font-size:12px;text-align:center;padding:10px;"><a href="{% url 'tasks:project_create' %}" style="color:#c4b5fd;">+ Створити проєкт</a></div>
       {% endfor %}
     </div>
+
+    <!-- Mentions -->
+    {% if mentioned_tasks %}
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;">🔔 Тебе тегнули</div>
+      {% for task in mentioned_tasks %}
+      <a href="{% url 'tasks:task_detail' task.pk %}" style="display:flex;align-items:center;gap:8px;padding:7px;border-radius:var(--rs);margin-bottom:2px;transition:background .12s;" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">
+        <span style="font-size:13px;">@</span>
+        <span style="flex:1;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ task.title }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

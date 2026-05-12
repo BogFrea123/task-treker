@@ -1,14 +1,31 @@
 {% extends 'tasks/base.html' %}
 {% block title %}{{ page_title }}{% endblock %}
 {% block page_title %}{{ page_title }}{% endblock %}
+{% block extra_css %}
+<style>
+.mention-drop{position:absolute;background:var(--card);border:1px solid var(--brd2);border-radius:var(--rs);z-index:999;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:200px;overflow-y:auto;}
+.m-item{padding:7px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.m-item:hover,.m-item.active{background:var(--hover);}
+.m-av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0;}
+.mention-tag-item{display:inline-flex;align-items:center;gap:5px;background:var(--acc-s);border:1px solid rgba(139,92,246,.25);color:#c4b5fd;border-radius:20px;padding:3px 9px;font-size:12px;font-weight:500;}
+</style>
+{% endblock %}
 {% block content %}
-<div style="max-width:620px;">
+<div style="max-width:680px;">
   <a href="{% url 'tasks:task_list' %}" style="font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;margin-bottom:14px;">← Назад</a>
   <div class="card">
     <form method="post" novalidate>
       {% csrf_token %}
-      <div class="form-group"><label class="form-label">Назва *</label>{{ form.title }}{% if form.title.errors %}<div class="form-err">{{ form.title.errors.0 }}</div>{% endif %}</div>
-      <div class="form-group"><label class="form-label">Опис</label><textarea name="description" class="cu-input" rows="4" placeholder="Детальний опис...">{{ form.description.value|default:'' }}</textarea></div>
+      <div class="form-group">
+        <label class="form-label">Назва *</label>
+        {{ form.title }}
+        {% if form.title.errors %}<div class="form-err">{{ form.title.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group" style="position:relative;">
+        <label class="form-label">Опис <span style="color:var(--muted);font-weight:400;font-size:10px;">— @username щоб тегнути</span></label>
+        {{ form.description }}
+        <div id="desc-drop" class="mention-drop" style="display:none;"></div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
         <div class="form-group"><label class="form-label">Тип</label>{{ form.issue_type }}</div>
         <div class="form-group"><label class="form-label">Статус</label>{{ form.status }}</div>
@@ -24,10 +41,40 @@
         <div class="form-group"><label class="form-label">Оцінка (год)</label>{{ form.estimated_hours }}</div>
       </div>
       {% if form.tags.field.queryset.exists %}
-      <div class="form-group"><label class="form-label">Теги</label>
-        <div style="display:flex;flex-wrap:wrap;gap:7px;">{% for choice in form.tags %}<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--txt2);cursor:pointer;background:var(--elev);padding:4px 9px;border-radius:20px;border:1px solid var(--brd);">{{ choice.tag }} {{ choice.choice_label }}</label>{% endfor %}</div>
+      <div class="form-group">
+        <label class="form-label">Теги</label>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;">
+          {% for choice in form.tags %}<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--txt2);cursor:pointer;background:var(--elev);padding:4px 10px;border-radius:20px;border:1px solid var(--brd);">{{ choice.tag }} {{ choice.choice_label }}</label>{% endfor %}
+        </div>
       </div>
       {% endif %}
+
+      <!-- Mention users -->
+      <div class="form-group">
+        <label class="form-label">Тегнути користувачів <span style="color:var(--muted);font-weight:400;">— сповіщення</span></label>
+        <div style="position:relative;margin-bottom:8px;">
+          <input type="text" id="m-search" class="cu-input" placeholder="Пошук @username..." autocomplete="off">
+          <div id="m-search-drop" class="mention-drop" style="display:none;"></div>
+        </div>
+        <div id="m-selected" style="display:flex;flex-wrap:wrap;gap:6px;min-height:20px;">
+          {% for u in form.mention_users.initial %}
+          <span class="mention-tag-item"><div class="m-av">{{ u.username|first|upper }}</div>@{{ u.username }}<input type="hidden" name="mention_users" value="{{ u.pk }}"><button type="button" onclick="this.closest('.mention-tag-item').remove()" style="background:none;border:none;color:#c4b5fd;cursor:pointer;font-size:12px;padding:0;">✕</button></span>
+          {% endfor %}
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Або пиши @username прямо в описі</div>
+      </div>
+
+      <!-- Open task -->
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          {{ form.is_open_task }}
+          <span>
+            <div style="font-size:13px;font-weight:500;">Відкрита задача</div>
+            <div style="font-size:12px;color:var(--muted);">Будь-який користувач зможе побачити і взяти цю задачу</div>
+          </span>
+        </label>
+      </div>
+
       <div style="display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--brd);">
         <a href="{% url 'tasks:task_list' %}" class="btn btn-ghost">Скасувати</a>
         <button type="submit" class="btn btn-primary">{{ action }}</button>
@@ -35,4 +82,62 @@
     </form>
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const allUsers = {{ all_users|safe }};
+
+function setupMention(ta, drop) {
+  let start = -1;
+  ta.addEventListener('input', function() {
+    const v = this.value, pos = this.selectionStart;
+    let at = -1;
+    for (let i = pos-1; i >= 0; i--) { if (v[i]==='@'){at=i;break;} if(v[i]===' '||v[i]==='\n')break; }
+    if (at===-1){drop.style.display='none';start=-1;return;}
+    start=at; const q=v.slice(at+1,pos).toLowerCase();
+    const m=allUsers.filter(u=>u.toLowerCase().startsWith(q)).slice(0,8);
+    if(!m.length){drop.style.display='none';return;}
+    drop.innerHTML=m.map((u,i)=>`<div class="m-item${i===0?' active':''}" data-u="${u}"><div class="m-av">${u[0].toUpperCase()}</div>@${u}</div>`).join('');
+    drop.style.display='block';
+    drop.querySelectorAll('.m-item').forEach(it=>it.addEventListener('mousedown',e=>{e.preventDefault();insert(ta,start,it.dataset.u);drop.style.display='none';}));
+  });
+  ta.addEventListener('keydown',function(e){
+    if(drop.style.display==='none')return;
+    const items=drop.querySelectorAll('.m-item'),active=drop.querySelector('.m-item.active');
+    let idx=[...items].indexOf(active);
+    if(e.key==='ArrowDown'){e.preventDefault();active?.classList.remove('active');items[Math.min(idx+1,items.length-1)]?.classList.add('active');}
+    else if(e.key==='ArrowUp'){e.preventDefault();active?.classList.remove('active');items[Math.max(idx-1,0)]?.classList.add('active');}
+    else if(e.key==='Enter'||e.key==='Tab'){if(active){e.preventDefault();insert(this,start,active.dataset.u);drop.style.display='none';}}
+    else if(e.key==='Escape')drop.style.display='none';
+  });
+  document.addEventListener('click',e=>{if(!drop.contains(e.target)&&e.target!==ta)drop.style.display='none';});
+}
+function insert(ta,at,u){const pos=ta.selectionStart;ta.value=ta.value.slice(0,at)+'@'+u+' '+ta.value.slice(pos);const np=at+u.length+2;ta.setSelectionRange(np,np);ta.focus();}
+
+const descTa=document.getElementById('desc-ta');
+const descDrop=document.getElementById('desc-drop');
+if(descTa&&descDrop)setupMention(descTa,descDrop);
+
+// User search picker
+const mSearch=document.getElementById('m-search'), mDrop=document.getElementById('m-search-drop'), mSel=document.getElementById('m-selected');
+function getSelected(){return[...mSel.querySelectorAll('input[name="mention_users"]')].map(i=>i.value);}
+mSearch?.addEventListener('input',function(){
+  const q=this.value.trim();
+  if(!q){mDrop.style.display='none';return;}
+  fetch(`/api/users/?q=${encodeURIComponent(q)}`).then(r=>r.json()).then(data=>{
+    const sel=getSelected();
+    const m=data.users.filter(u=>!sel.includes(String(u.id)));
+    if(!m.length){mDrop.style.display='none';return;}
+    mDrop.innerHTML=m.map(u=>`<div class="m-item" data-uid="${u.id}" data-un="${u.username}"><div class="m-av">${u.username[0].toUpperCase()}</div>@${u.username}</div>`).join('');
+    mDrop.style.display='block';
+    mDrop.querySelectorAll('.m-item').forEach(it=>it.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      const tag=document.createElement('span');tag.className='mention-tag-item';
+      tag.innerHTML=`<div class="m-av">${it.dataset.un[0].toUpperCase()}</div>@${it.dataset.un}<input type="hidden" name="mention_users" value="${it.dataset.uid}"><button type="button" onclick="this.closest('.mention-tag-item').remove()" style="background:none;border:none;color:#c4b5fd;cursor:pointer;font-size:12px;padding:0;">✕</button>`;
+      mSel.appendChild(tag);mSearch.value='';mDrop.style.display='none';
+    }));
+  });
+});
+document.addEventListener('click',e=>{if(!mDrop.contains(e.target)&&e.target!==mSearch)mDrop.style.display='none';});
+</script>
 {% endblock %}

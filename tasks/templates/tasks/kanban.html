@@ -2,23 +2,211 @@
 {% block title %}Kanban{% endblock %}
 {% block page_title %}Kanban дошка{% endblock %}
 {% block nk %}active{% endblock %}
-{% block extra_css %}<style>.kb{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;height:calc(100vh - 130px);}.kc{display:flex;flex-direction:column;background:var(--surf);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden;}.kc-h{padding:10px 12px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}.kc-t{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px;}.kc-cnt{font-size:11px;color:var(--muted);background:var(--active);padding:1px 6px;border-radius:10px;}.kc-b{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:7px;}.kc-b.drag-over{background:var(--hover);}.kk{background:var(--elev);border:1px solid var(--brd);border-radius:var(--rs);padding:10px;cursor:grab;}.kk:active{cursor:grabbing;}.kk.dragging{opacity:.35;}.kk:hover{border-color:var(--brd2);}.kk-bar{height:2px;border-radius:1px;margin-bottom:8px;}.kk-meta{display:flex;align-items:center;justify-content:space-between;gap:4px;}</style>{% endblock %}
-{% block content %}
-<div class="kb">
-{% for col in columns %}
-<div class="kc"><div class="kc-h"><div class="kc-t"><div style="width:7px;height:7px;border-radius:50%;background:{{ col.color }};"></div>{{ col.label }}</div><span class="kc-cnt">{{ col.tasks|length }}</span></div>
-<div class="kc-b" data-status="{{ col.key }}" id="col-{{ col.key }}">
-{% for task in col.tasks %}
-<div class="kk" draggable="true" data-id="{{ task.pk }}" data-status="{{ task.status }}">
-  <div class="kk-bar" style="background:{% if task.priority == 'urgent' %}var(--red){% elif task.priority == 'high' %}var(--amber){% elif task.priority == 'medium' %}var(--blue){% else %}#333{% endif %};"></div>
-  <div style="font-size:12.5px;font-weight:500;margin-bottom:7px;line-height:1.4;"><a href="{% url 'tasks:task_detail' task.pk %}" style="color:var(--txt);">{{ task.title }}</a></div>
-  {% if task.project %}<div style="font-size:10.5px;color:var(--muted);margin-bottom:6px;">{{ task.project.key }}</div>{% endif %}
-  {% if task.tags.all %}<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px;">{% for tag in task.tags.all %}<span class="tag-pill" style="background:{{ tag.color }}22;color:{{ tag.color }};font-size:10px;">#{{ tag.name }}</span>{% endfor %}</div>{% endif %}
-  <div class="kk-meta"><span class="badge b-{{ task.issue_type }}" style="font-size:10px;">{{ task.get_issue_type_display }}</span>{% if task.assignee %}<div class="av" style="width:20px;height:20px;font-size:10px;" title="{{ task.assignee.username }}">{{ task.assignee.username|first|upper }}</div>{% endif %}</div>
-</div>
-{% empty %}<div style="text-align:center;padding:20px 10px;color:var(--muted);font-size:11.5px;border:1px dashed var(--brd);border-radius:var(--rs);">Перетягни сюди</div>{% endfor %}
-</div></div>
-{% endfor %}
-</div>
+
+{% block extra_css %}
+<style>
+.kb{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;height:calc(100vh - 128px);}
+.kc{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden;transition:border-color .15s;}
+.kc.drag-over{border-color:var(--acc);background:var(--hover);}
+.kc-h{padding:11px 13px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.kc-title{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px;}
+.kc-line{width:10px;height:3px;border-radius:2px;}
+.kc-cnt{font-size:11px;color:var(--muted);background:var(--elev);padding:2px 7px;border-radius:20px;font-weight:600;}
+.kc-body{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:7px;}
+
+.kk{background:var(--elev);border:1px solid var(--brd);border-radius:var(--rs);padding:11px;cursor:grab;transition:border-color .13s,box-shadow .13s,opacity .13s;user-select:none;}
+.kk:hover{border-color:var(--brd2);box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.kk.dragging{opacity:.3;cursor:grabbing;}
+.kk.drag-placeholder{background:var(--acc-s);border:2px dashed rgba(139,92,246,.4);border-radius:var(--rs);height:60px;}
+.kk-pbar{height:2px;border-radius:1px;margin-bottom:8px;}
+.kk-title{font-size:13px;font-weight:500;margin-bottom:7px;line-height:1.4;color:var(--txt);}
+.kk-meta{display:flex;align-items:center;justify-content:space-between;gap:4px;}
+.kk-tags{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px;}
+
+/* Status update toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green-s);color:#4ade80;border:1px solid rgba(34,197,94,.2);border-radius:var(--rs);padding:10px 16px;font-size:13px;font-weight:500;z-index:999;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.error{background:var(--red-s);color:#f87171;border-color:rgba(239,68,68,.2);}
+</style>
 {% endblock %}
-{% block extra_js %}<script>const csrf='{{ csrf_token }}';let drag=null;document.querySelectorAll('.kk').forEach(c=>{c.addEventListener('dragstart',e=>{drag=c;c.classList.add('dragging');e.dataTransfer.effectAllowed='move';});c.addEventListener('dragend',()=>{c.classList.remove('dragging');drag=null;});});document.querySelectorAll('.kc-b').forEach(col=>{col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drag-over');});col.addEventListener('dragleave',()=>col.classList.remove('drag-over'));col.addEventListener('drop',e=>{e.preventDefault();col.classList.remove('drag-over');if(!drag)return;const ns=col.dataset.status,id=drag.dataset.id;if(drag.dataset.status===ns)return;const fd=new FormData();fd.append('status',ns);fd.append('csrfmiddlewaretoken',csrf);fetch(`/tasks/${id}/status/`,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.ok){col.insertBefore(drag,col.lastElementChild?.nextSibling||null);drag.dataset.status=ns;document.querySelectorAll('.kc').forEach(k=>{k.querySelector('.kc-cnt').textContent=k.querySelectorAll('.kk').length;});}});});});</script>{% endblock %}
+
+{% block content %}
+<div class="kb" id="kanban-board">
+  {% for col in columns %}
+  <div class="kc" id="col-{{ col.key }}" data-status="{{ col.key }}">
+    <div class="kc-h">
+      <div class="kc-title">
+        <div class="kc-line" style="background:{{ col.color }};"></div>
+        {{ col.label }}
+      </div>
+      <span class="kc-cnt" id="cnt-{{ col.key }}">{{ col.tasks|length }}</span>
+    </div>
+    <div class="kc-body" id="body-{{ col.key }}">
+      {% for task in col.tasks %}
+      <div class="kk"
+           draggable="true"
+           data-id="{{ task.pk }}"
+           data-status="{{ col.key }}"
+           id="task-{{ task.pk }}">
+        <div class="kk-pbar" style="background:{% if task.priority == 'urgent' %}var(--red){% elif task.priority == 'high' %}var(--amber){% elif task.priority == 'medium' %}var(--blue){% else %}var(--active){% endif %};"></div>
+        <div class="kk-title">
+          <a href="{% url 'tasks:task_detail' task.pk %}" style="color:var(--txt);" onclick="event.stopPropagation()">{{ task.title }}</a>
+        </div>
+        {% if task.tags.all %}
+        <div class="kk-tags">
+          {% for tag in task.tags.all %}
+          <span class="tag-pill" style="background:{{ tag.color }}22;color:{{ tag.color }};font-size:10px;"># {{ tag.name }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <div class="kk-meta">
+          <span class="badge b-{{ task.issue_type }}" style="font-size:10px;">{{ task.get_issue_type_display }}</span>
+          <div style="display:flex;align-items:center;gap:5px;">
+            {% if task.project %}<span style="font-size:10.5px;color:var(--muted);">{{ task.project.key }}</span>{% endif %}
+            {% if task.assignee %}
+            <div class="av" style="width:20px;height:20px;font-size:9px;" title="{{ task.assignee.username }}">{{ task.assignee.username|first|upper }}</div>
+            {% endif %}
+            {% if task.due_date %}<span style="font-size:10.5px;color:{% if task.is_overdue %}var(--red){% else %}var(--muted){% endif %};">{{ task.due_date|date:"d.m" }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:20px 10px;color:var(--muted);font-size:12px;border:1px dashed var(--brd);border-radius:var(--rs);" class="drop-hint">Перетягни сюди</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CSRF = '{{ csrf_token }}';
+let dragEl = null, placeholder = null;
+
+function showToast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (err ? ' error' : '') + ' show';
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function getColBody(status) {
+  return document.getElementById('body-' + status);
+}
+
+function updateCount(status) {
+  const body = getColBody(status);
+  const count = body.querySelectorAll('.kk:not(.dragging)').length;
+  document.getElementById('cnt-' + status).textContent = count;
+  // Show/hide drop hint
+  const hint = body.querySelector('.drop-hint');
+  if (hint) hint.style.display = count ? 'none' : 'block';
+}
+
+// ── Drag events ──────────────────────────────────────
+document.querySelectorAll('.kk').forEach(initCard);
+
+function initCard(card) {
+  card.addEventListener('dragstart', e => {
+    dragEl = card;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', card.dataset.id);
+    // Create placeholder
+    placeholder = document.createElement('div');
+    placeholder.className = 'kk drag-placeholder';
+    setTimeout(() => card.after(placeholder), 0);
+  });
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    placeholder?.remove();
+    placeholder = null;
+    dragEl = null;
+  });
+}
+
+// ── Column drop zones ────────────────────────────────
+document.querySelectorAll('.kc').forEach(col => {
+  col.addEventListener('dragover', e => {
+    e.preventDefault();
+    col.classList.add('drag-over');
+    const body = col.querySelector('.kc-body');
+    if (!placeholder || !dragEl) return;
+
+    // Find insertion point
+    const afterEl = getDragAfterElement(body, e.clientY);
+    if (afterEl) {
+      body.insertBefore(placeholder, afterEl);
+    } else {
+      body.appendChild(placeholder);
+    }
+  });
+
+  col.addEventListener('dragleave', e => {
+    if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+  });
+
+  col.addEventListener('drop', e => {
+    e.preventDefault();
+    col.classList.remove('drag-over');
+    if (!dragEl) return;
+
+    const newStatus = col.dataset.status;
+    const oldStatus = dragEl.dataset.status;
+    const taskId = dragEl.dataset.id;
+
+    // Move card to new column
+    const body = col.querySelector('.kc-body');
+    placeholder ? body.insertBefore(dragEl, placeholder) : body.appendChild(dragEl);
+    placeholder?.remove();
+    placeholder = null;
+
+    if (oldStatus === newStatus) { updateCount(oldStatus); return; }
+
+    // Optimistic UI update
+    dragEl.dataset.status = newStatus;
+    updateCount(oldStatus);
+    updateCount(newStatus);
+
+    // API call
+    const fd = new FormData();
+    fd.append('status', newStatus);
+    fd.append('csrfmiddlewaretoken', CSRF);
+
+    fetch(`/tasks/${taskId}/status/`, { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          showToast(`✓ Переміщено в "${data.label}"`);
+        } else {
+          // Revert on error
+          const oldBody = getColBody(oldStatus);
+          oldBody.appendChild(dragEl);
+          dragEl.dataset.status = oldStatus;
+          updateCount(oldStatus);
+          updateCount(newStatus);
+          showToast('Помилка доступу', true);
+        }
+      })
+      .catch(() => {
+        showToast('Помилка з\'єднання', true);
+      });
+  });
+});
+
+function getDragAfterElement(container, y) {
+  const els = [...container.querySelectorAll('.kk:not(.dragging):not(.drag-placeholder)')];
+  return els.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    return offset < 0 && offset > closest.offset ? { offset, element: child } : closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+// Initial count update
+document.querySelectorAll('.kc').forEach(col => updateCount(col.dataset.status));
+</script>
+{% endblock %}

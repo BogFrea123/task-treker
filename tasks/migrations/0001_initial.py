@@ -1,83 +1,13 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
-
 class Migration(migrations.Migration):
     initial = True
-    dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
-    ]
+    dependencies = [('auth', '0012_alter_user_first_name_max_length')]
     operations = [
-        migrations.CreateModel(
-            name='Tag',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=50)),
-                ('color', models.CharField(default='#6366f1', max_length=7)),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tags', to='auth.user')),
-            ],
-            options={'unique_together': {('name', 'owner')}},
-        ),
-        migrations.CreateModel(
-            name='Project',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=100)),
-                ('description', models.TextField(blank=True)),
-                ('key', models.CharField(max_length=10)),
-                ('color', models.CharField(default='#7c3aed', max_length=7)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='owned_projects', to='auth.user')),
-                ('members', models.ManyToManyField(blank=True, related_name='projects', to='auth.user')),
-            ],
-            options={'ordering': ['-created_at']},
-        ),
-        migrations.CreateModel(
-            name='Sprint',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=100)),
-                ('goal', models.TextField(blank=True)),
-                ('status', models.CharField(choices=[('planned','Запланований'),('active','Активний'),('completed','Завершений')], default='planned', max_length=20)),
-                ('start_date', models.DateField(blank=True, null=True)),
-                ('end_date', models.DateField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sprints', to='tasks.project')),
-            ],
-            options={'ordering': ['-created_at']},
-        ),
-        migrations.CreateModel(
-            name='Task',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
-                ('title', models.CharField(max_length=200)),
-                ('description', models.TextField(blank=True)),
-                ('issue_type', models.CharField(choices=[('task','Task'),('bug','Bug'),('story','Story'),('epic','Epic')], default='task', max_length=10)),
-                ('status', models.CharField(choices=[('todo','To Do'),('in_progress','In Progress'),('review','Review'),('done','Done')], default='todo', max_length=20)),
-                ('priority', models.CharField(choices=[('low','Low'),('medium','Medium'),('high','High'),('urgent','Urgent')], default='medium', max_length=10)),
-                ('due_date', models.DateField(blank=True, null=True)),
-                ('estimated_hours', models.PositiveIntegerField(blank=True, null=True)),
-                ('logged_hours', models.PositiveIntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='auth.user')),
-                ('assignee', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assigned_tasks', to='auth.user')),
-                ('project', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='tasks.project')),
-                ('sprint', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='tasks', to='tasks.sprint')),
-                ('tags', models.ManyToManyField(blank=True, related_name='tasks', to='tasks.tag')),
-            ],
-            options={'ordering': ['-created_at']},
-        ),
-        migrations.CreateModel(
-            name='Comment',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
-                ('text', models.TextField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('task', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='tasks.task')),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='auth.user')),
-            ],
-            options={'ordering': ['created_at']},
-        ),
+        migrations.CreateModel('Tag', fields=[('id',models.BigAutoField(auto_created=True,primary_key=True,serialize=False)),('name',models.CharField(max_length=50)),('color',models.CharField(default='#6366f1',max_length=7)),('owner',models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,related_name='tags',to='auth.user'))], options={'unique_together':{('name','owner')}}),
+        migrations.CreateModel('Project', fields=[('id',models.BigAutoField(auto_created=True,primary_key=True,serialize=False)),('name',models.CharField(max_length=100)),('description',models.TextField(blank=True)),('key',models.CharField(max_length=10)),('color',models.CharField(default='#7c3aed',max_length=7)),('is_public',models.BooleanField(default=False)),('created_at',models.DateTimeField(auto_now_add=True)),('owner',models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,related_name='owned_projects',to='auth.user')),('members',models.ManyToManyField(blank=True,related_name='projects',to='auth.user'))], options={'ordering':['-created_at']}),
+        migrations.CreateModel('Sprint', fields=[('id',models.BigAutoField(auto_created=True,primary_key=True,serialize=False)),('name',models.CharField(max_length=100)),('goal',models.TextField(blank=True)),('status',models.CharField(choices=[('planned','Запланований'),('active','Активний'),('completed','Завершений')],default='planned',max_length=20)),('start_date',models.DateField(blank=True,null=True)),('end_date',models.DateField(blank=True,null=True)),('created_at',models.DateTimeField(auto_now_add=True)),('project',models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,related_name='sprints',to='tasks.project'))], options={'ordering':['-created_at']}),
+        migrations.CreateModel('Task', fields=[('id',models.BigAutoField(auto_created=True,primary_key=True,serialize=False)),('title',models.CharField(max_length=200)),('description',models.TextField(blank=True)),('issue_type',models.CharField(choices=[('task','Task'),('bug','Bug'),('story','Story'),('epic','Epic')],default='task',max_length=10)),('status',models.CharField(choices=[('todo','To Do'),('in_progress','In Progress'),('review','Review'),('done','Done')],default='todo',max_length=20)),('priority',models.CharField(choices=[('low','Low'),('medium','Medium'),('high','High'),('urgent','Urgent')],default='medium',max_length=10)),('due_date',models.DateField(blank=True,null=True)),('estimated_hours',models.PositiveIntegerField(blank=True,null=True)),('logged_hours',models.PositiveIntegerField(default=0)),('is_open_task',models.BooleanField(default=False)),('created_at',models.DateTimeField(auto_now_add=True)),('updated_at',models.DateTimeField(auto_now=True)),('owner',models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,related_name='tasks',to='auth.user')),('assignee',models.ForeignKey(blank=True,null=True,on_delete=django.db.models.deletion.SET_NULL,related_name='assigned_tasks',to='auth.user')),('project',models.ForeignKey(blank=True,null=True,on_delete=django.db.models.deletion.CASCADE,related_name='tasks',to='tasks.project')),('sprint',models.ForeignKey(blank=True,null=True,on_delete=django.db.models.deletion.SET_NULL,related_name='tasks',to='tasks.sprint')),('tags',models.ManyToManyField(blank=True,related_name='tasks',to='tasks.tag')),('mentioned_users',models.ManyToManyField(blank=True,related_name='mentioned_in_tasks',to='auth.user'))], options={'ordering':['-created_at']}),
+        migrations.CreateModel('Comment', fields=[('id',models.BigAutoField(auto_created=True,primary_key=True,serialize=False)),('text',models.TextField()),('created_at',models.DateTimeField(auto_now_add=True)),('updated_at',models.DateTimeField(auto_now=True)),('task',models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,related_name='comments',to='tasks.task')),('author',models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,related_name='comments',to='auth.user')),('parent',models.ForeignKey(blank=True,null=True,on_delete=django.db.models.deletion.CASCADE,related_name='replies',to='tasks.comment')),('mentioned_users',models.ManyToManyField(blank=True,related_name='mentioned_in_comments',to='auth.user'))], options={'ordering':['created_at']}),
     ]

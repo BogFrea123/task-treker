@@ -2,11 +2,8 @@
 {% block title %}Новий тег{% endblock %}
 {% block page_title %}Новий тег{% endblock %}
 {% block content %}
-<div style="max-width:360px;">
-<div class="card">
-<form method="post">{% csrf_token %}
+<div style="max-width:360px;"><div class="card"><form method="post">{% csrf_token %}
 <div class="form-group"><label class="form-label">Назва</label>{{ form.name }}{% if form.name.errors %}<div class="form-err">{{ form.name.errors.0 }}</div>{% endif %}</div>
-<div class="form-group"><label class="form-label">Колір</label><input type="color" name="color" value="{{ form.color.value|default:'#7c3aed' }}" style="width:44px;height:36px;border:none;background:none;cursor:pointer;border-radius:4px;"></div>
+<div class="form-group"><label class="form-label">Колір</label><div style="display:flex;align-items:center;gap:12px;"><input type="color" name="color" value="{{ form.color.value|default:'#8b5cf6' }}" style="width:44px;height:36px;border:none;background:none;cursor:pointer;border-radius:4px;"><span style="font-size:12px;color:var(--muted);">Оберіть колір</span></div></div>
 <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid var(--brd);"><a href="{% url 'tasks:tag_list' %}" class="btn btn-ghost">Скасувати</a><button type="submit" class="btn btn-primary">Створити</button></div>
-</form></div></div>
-{% endblock %}
+</form></div></div>{% endblock %}
