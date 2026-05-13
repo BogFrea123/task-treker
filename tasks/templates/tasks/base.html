@@ -15,7 +15,6 @@
   --green:#22c55e;--green-s:rgba(34,197,94,0.12);
   --amber:#f59e0b;--amber-s:rgba(245,158,11,0.12);
   --red:#ef4444;--red-s:rgba(239,68,68,0.12);
-  --pink:#ec4899;--cyan:#06b6d4;
   --sw:230px;--r:10px;--rs:6px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -24,44 +23,50 @@ a{color:inherit;text-decoration:none;}
 button{cursor:pointer;font-family:inherit;}
 input,select,textarea{font-family:inherit;}
 
-/* ── LAYOUT ── */
 .app{display:flex;height:100vh;overflow:hidden;}
 .sidebar{width:var(--sw);background:var(--surf);border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
 .topbar{height:54px;background:var(--surf);border-bottom:1px solid var(--brd);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0;}
 .content{flex:1;overflow-y:auto;padding:28px 24px;}
 
-/* ── SIDEBAR ── */
-.sb-logo{padding:16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--brd);}
+/* Sidebar */
+.sb-logo{padding:16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--brd);transition:background .13s;}
+.sb-logo:hover{background:var(--hover);}
 .logo-mark{width:32px;height:32px;background:var(--acc-g);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 16px rgba(139,92,246,.35);}
 .logo-mark svg{width:16px;height:16px;fill:white;}
 .logo-name{font-size:15px;font-weight:700;color:var(--txt);letter-spacing:-.02em;}
-.logo-name span{color:var(--acc);font-weight:800;}
+.logo-name span{color:var(--acc);}
+.logo-hint{font-size:10px;color:var(--muted);margin-top:1px;}
 
 .sb-sec{padding:10px 10px 4px;}
 .sb-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;padding:0 8px;margin-bottom:4px;}
-
 .nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--rs);color:var(--txt2);font-size:13px;font-weight:500;transition:all .12s;position:relative;}
 .nav-item:hover{background:var(--hover);color:var(--txt);}
 .nav-item.active{background:var(--acc-s);color:#c4b5fd;}
 .nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:70%;background:var(--acc);border-radius:0 2px 2px 0;}
 .nav-item svg{width:15px;height:15px;flex-shrink:0;opacity:.7;}
 .nav-item.active svg,.nav-item:hover svg{opacity:1;}
+.nav-item-home{background:var(--acc-s);border:1px solid rgba(139,92,246,.2);}
+.nav-item-home:hover{background:rgba(139,92,246,.2);}
+.nav-item-home svg{opacity:1;}
 
 .sb-user{margin-top:auto;padding:12px;border-top:1px solid var(--brd);display:flex;align-items:center;gap:9px;}
 .av{display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;color:white;flex-shrink:0;background:var(--acc-g);}
 
-/* ── TOPBAR ── */
+/* Topbar */
 .topbar-title{font-size:14px;font-weight:600;color:var(--txt);}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.home-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--rs);font-size:12.5px;font-weight:600;background:var(--acc-s);color:#c4b5fd;border:1px solid rgba(139,92,246,.25);transition:all .13s;}
+.home-btn:hover{background:rgba(139,92,246,.2);color:#e4d4fd;}
+.home-btn svg{width:13px;height:13px;}
 
-/* ── BUTTONS ── */
+/* Buttons */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--rs);font-size:13px;font-weight:500;border:none;transition:all .13s;line-height:1;white-space:nowrap;cursor:pointer;}
 .btn svg{width:14px;height:14px;}
 .btn-primary{background:var(--acc-g);color:white;box-shadow:0 2px 12px rgba(139,92,246,.3);}
-.btn-primary:hover{background:var(--acc3);box-shadow:0 4px 20px rgba(139,92,246,.4);}
+.btn-primary:hover{opacity:.9;box-shadow:0 4px 20px rgba(139,92,246,.4);}
 .btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--brd2);}
-.btn-ghost:hover{background:var(--hover);color:var(--txt);border-color:var(--brd2);}
+.btn-ghost:hover{background:var(--hover);color:var(--txt);}
 .btn-danger{background:var(--red-s);color:var(--red);border:1px solid rgba(239,68,68,.2);}
 .btn-danger:hover{background:var(--red);color:white;}
 .btn-success{background:var(--green-s);color:var(--green);border:1px solid rgba(34,197,94,.2);}
@@ -69,8 +74,8 @@ input,select,textarea{font-family:inherit;}
 .btn-sm{padding:5px 10px;font-size:12px;}
 .btn-xs{padding:3px 8px;font-size:11px;}
 
-/* ── BADGES ── */
-.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.01em;}
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
 .b-todo{background:rgba(82,82,91,.25);color:#a1a1aa;}
 .b-in_progress{background:var(--blue-s);color:#60a5fa;}
 .b-review{background:var(--amber-s);color:#fbbf24;}
@@ -86,16 +91,14 @@ input,select,textarea{font-family:inherit;}
 .b-bug{background:var(--red-s);color:#f87171;}
 .b-story{background:var(--green-s);color:#4ade80;}
 .b-epic{background:var(--acc-s);color:#c4b5fd;}
-.b-public{background:rgba(6,182,212,.12);color:#22d3ee;}
 
 .pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .pdot-low{background:#52525b;}.pdot-medium{background:var(--blue);}.pdot-high{background:var(--amber);}.pdot-urgent{background:var(--red);}
 
-/* ── CARDS ── */
+/* Cards */
 .card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:16px;}
-.card-sm{background:var(--card);border:1px solid var(--brd);border-radius:var(--rs);}
 
-/* ── FORMS ── */
+/* Forms */
 .cu-input,.cu-select{width:100%;background:var(--elev);border:1px solid var(--brd);color:var(--txt);padding:8px 12px;border-radius:var(--rs);font-size:13px;transition:border-color .13s,box-shadow .13s;}
 .cu-input:focus,.cu-select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(139,92,246,.1);}
 .cu-input::placeholder{color:var(--muted);}
@@ -109,31 +112,30 @@ input,select,textarea{font-family:inherit;}
 .form-label{display:block;font-size:11px;font-weight:600;color:var(--txt2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;}
 .form-err{font-size:11px;color:var(--red);margin-top:3px;}
 
-/* ── TABLE ── */
+/* Table */
 .cu-table{width:100%;border-collapse:collapse;}
 .cu-table th{text-align:left;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:9px 12px;border-bottom:1px solid var(--brd);}
 .cu-table td{padding:9px 12px;border-bottom:1px solid var(--brd);vertical-align:middle;}
 .cu-table tr:last-child td{border-bottom:none;}
 .cu-table tr:hover td{background:var(--hover);}
 
-/* ── STATS ── */
+/* Stats */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:22px;}
 .stat-card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:16px;position:relative;overflow:hidden;}
 .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--line-color,var(--acc));}
 .stat-num{font-size:26px;font-weight:700;color:var(--txt);line-height:1;}
 .stat-lbl{font-size:11.5px;color:var(--muted);margin-top:4px;}
 
-/* ── TAG PILL ── */
+/* Tags / Mentions */
 .tag-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;}
 .mention{color:#c4b5fd;background:rgba(139,92,246,.12);border-radius:3px;padding:1px 4px;font-weight:600;}
 .tagged-user{display:inline-flex;align-items:center;gap:5px;background:var(--acc-s);border:1px solid rgba(139,92,246,.25);color:#c4b5fd;border-radius:20px;padding:2px 8px;font-size:12px;font-weight:500;}
 
-/* ── MISC ── */
+/* Misc */
 .empty{text-align:center;padding:48px 24px;color:var(--muted);}
 .empty svg{width:38px;height:38px;margin-bottom:12px;opacity:.2;display:block;margin-left:auto;margin-right:auto;}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-thumb{background:var(--active);border-radius:10px;}
-.divider{height:1px;background:var(--brd);margin:12px 0;}
 </style>
 {% block extra_css %}{% endblock %}
 </head>
@@ -142,31 +144,49 @@ input,select,textarea{font-family:inherit;}
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
-  <div class="sb-logo">
+
+  <!-- Логотип = кнопка "Всі задачі" -->
+  <a href="{% url 'tasks:public_board' %}" class="sb-logo" title="Всі задачі">
     <div class="logo-mark">
       <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
     </div>
-    <span class="logo-name">Task<span>Flow</span></span>
-  </div>
+    <div>
+      <div class="logo-name">Task<span>Flow</span></div>
+      <div class="logo-hint">← всі задачі</div>
+    </div>
+  </a>
 
   {% if user.is_authenticated %}
   <div class="sb-sec">
     <div class="sb-lbl">Головне</div>
+
+    <!-- Окрема кнопка "Всі задачі" -->
+    <a href="{% url 'tasks:public_board' %}" class="nav-item nav-item-home {% block nl %}{% endblock %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Дошка задач</a>
+
     <a href="{% url 'tasks:dashboard' %}" class="nav-item {% block nd %}{% endblock %}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Дашборд</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Дашборд</a>
+
     <a href="{% url 'tasks:public_board' %}" class="nav-item {% block nb %}{% endblock %}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Відкриті задачі</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      Відкриті задачі</a>
+
     <a href="{% url 'tasks:project_list' %}" class="nav-item {% block np %}{% endblock %}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Проєкти</a>
-    <a href="{% url 'tasks:task_list' %}" class="nav-item {% block nl %}{% endblock %}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Мої задачі</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Проєкти</a>
+
     <a href="{% url 'tasks:kanban' %}" class="nav-item {% block nk %}{% endblock %}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>Kanban</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+      Kanban</a>
   </div>
+
   <div class="sb-sec">
     <div class="sb-lbl">Налаштування</div>
     <a href="{% url 'tasks:tag_list' %}" class="nav-item {% block nt %}{% endblock %}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Теги</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      Теги</a>
   </div>
 
   <div class="sb-user">
@@ -184,10 +204,18 @@ input,select,textarea{font-family:inherit;}
   <div class="topbar">
     <span class="topbar-title">{% block page_title %}TaskFlow{% endblock %}</span>
     <div class="tb-right">
+      <!-- Кнопка "На головну" в topbar -->
+      {% if user.is_authenticated %}
+      <a href="{% url 'tasks:public_board' %}" class="home-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Всі задачі
+      </a>
+      {% endif %}
       {% block topbar_actions %}{% endblock %}
       {% if user.is_authenticated %}
       <a href="{% url 'tasks:task_create' %}" class="btn btn-primary btn-sm">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Нова задача</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Нова задача</a>
       {% endif %}
     </div>
   </div>

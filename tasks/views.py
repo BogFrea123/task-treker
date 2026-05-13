@@ -75,13 +75,54 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return ctx
 
 
-# ── Public Board ──────────────────────────────────────
+# ── Public Board (з фільтрацією) ──────────────────────
 class PublicBoardView(TemplateView):
     template_name = 'tasks/public_board.html'
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['open_tasks'] = Task.objects.filter(is_open_task=True).select_related('project','owner','assignee').prefetch_related('tags').order_by('-created_at')
-        ctx['public_projects'] = Project.objects.filter(is_public=True).annotate(task_count=Count('tasks'), done_count=Count('tasks', filter=Q(tasks__status='done')))
+        GET = self.request.GET
+
+        qs = Task.objects.filter(is_open_task=True).select_related(
+            'project', 'owner', 'assignee'
+        ).prefetch_related('tags')
+
+        # Фільтрація
+        priority = GET.get('priority', '')
+        issue_type = GET.get('issue_type', '')
+        search = GET.get('search', '')
+        project_id = GET.get('project', '')
+        only_free = GET.get('only_free', '')
+
+        if priority:
+            qs = qs.filter(priority=priority)
+        if issue_type:
+            qs = qs.filter(issue_type=issue_type)
+        if search:
+            qs = qs.filter(Q(title__icontains=search) | Q(description__icontains=search))
+        if project_id:
+            qs = qs.filter(project_id=project_id)
+        if only_free:
+            qs = qs.filter(assignee__isnull=True)
+
+        ctx['open_tasks'] = qs.order_by('-created_at')
+        ctx['public_projects'] = Project.objects.filter(
+            is_public=True
+        ).annotate(
+            task_count=Count('tasks'),
+            done_count=Count('tasks', filter=Q(tasks__status='done'))
+        )
+        # Для фільтрів
+        ctx['priority_choices'] = Task.PRIORITY_CHOICES
+        ctx['type_choices'] = Task.TYPE_CHOICES
+        ctx['all_projects'] = Project.objects.filter(is_public=True)
+        ctx['selected_priority'] = priority
+        ctx['selected_type'] = issue_type
+        ctx['selected_project'] = project_id
+        ctx['search_query'] = search
+        ctx['only_free'] = only_free
+        ctx['total_count'] = qs.count()
+        ctx['free_count'] = qs.filter(assignee__isnull=True).count()
         return ctx
 
 
@@ -149,7 +190,10 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
 # ── Sprints ───────────────────────────────────────────
 class SprintCreateView(LoginRequiredMixin, View):
     def post(self, request, project_pk):
-        project = get_object_or_404(Project, pk=project_pk, owner=request.user)
+        project = get_object_or_404(Project, pk=project_pk)
+        if project.owner != request.user and not project.members.filter(pk=request.user.pk).exists():
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
         form = SprintForm(request.POST)
         if form.is_valid():
             s = form.save(commit=False); s.project = project; s.save()
@@ -210,7 +254,9 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
     model = Task; template_name = 'tasks/task_detail.html'; context_object_name = 'task'
     def get_queryset(self):
         user = self.request.user
-        return Task.objects.filter(Q(owner=user)|Q(assignee=user)|Q(project__members=user)|Q(is_open_task=True)).distinct()
+        return Task.objects.filter(
+            Q(owner=user)|Q(assignee=user)|Q(project__members=user)|Q(is_open_task=True)
+        ).distinct()
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['comments'] = self.object.comments.filter(parent__isnull=True).select_related('author').prefetch_related('replies__author','replies__mentioned_users','mentioned_users')
@@ -319,12 +365,10 @@ class TagListView(LoginRequiredMixin, ListView):
     model = Tag; template_name = 'tasks/tag_list.html'; context_object_name = 'tags'
     def get_queryset(self): return Tag.objects.filter(owner=self.request.user).annotate(task_count=Count('tasks'))
 
-
 class TagCreateView(LoginRequiredMixin, CreateView):
     model = Tag; form_class = TagForm; template_name = 'tasks/tag_form.html'
     success_url = reverse_lazy('tasks:tag_list')
     def form_valid(self, form): form.instance.owner = self.request.user; return super().form_valid(form)
-
 
 class TagDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
