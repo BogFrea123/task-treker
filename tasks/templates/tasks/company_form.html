@@ -1,0 +1,69 @@
+{% extends 'tasks/base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block nc %}active{% endblock %}
+
+{% block content %}
+<div style="max-width:520px;">
+  <a href="{% url 'tasks:company_catalog' %}" style="font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;margin-bottom:16px;">← Каталог компаній</a>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+      <span style="font-size:20px;">🏢</span>
+      <div>
+        <div style="font-size:14px;font-weight:700;">{{ page_title }}</div>
+        <div style="font-size:12px;color:var(--muted);">{% if object %}Зміни дані своєї компанії{% else %}Придумай назву і username для компанії{% endif %}</div>
+      </div>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">Назва компанії *</label>
+        {{ form.name }}
+        {% if form.name.errors %}<div class="form-err">{{ form.name.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Username *</label>
+        <div style="display:flex;align-items:center;gap:0;">
+          <span style="background:var(--active);border:1px solid var(--brd);border-right:none;padding:8px 10px;border-radius:var(--rs) 0 0 var(--rs);font-size:13px;color:var(--muted);">@</span>
+          <div style="flex:1;">{{ form.username }}</div>
+        </div>
+        {% if form.username.errors %}<div class="form-err">{{ form.username.errors.0 }}</div>{% endif %}
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">Латинські літери, цифри та підкреслення</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Опис</label>
+        {{ form.description }}
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Колір аватара</label>
+          <input type="color" name="avatar_color" value="{{ form.avatar_color.value|default:'#7c3aed' }}" style="width:50px;height:36px;border:none;background:none;cursor:pointer;border-radius:4px;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Доступність</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--txt2);padding:8px 0;">
+            {{ form.is_open }}
+            <div>
+              <div style="font-weight:500;">Відкрита для вступу</div>
+              <div style="font-size:11px;color:var(--muted);">Будь-хто може подати заявку</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;padding-top:14px;border-top:1px solid var(--brd);">
+        <a href="{% url 'tasks:company_catalog' %}" class="btn btn-ghost">Скасувати</a>
+        <button type="submit" class="btn btn-primary">
+          {% if object %}Зберегти зміни{% else %}🏢 Створити компанію{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

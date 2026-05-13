@@ -1,0 +1,64 @@
+{% extends 'tasks/base.html' %}
+{% block title %}Заявка в {{ company.name }}{% endblock %}
+{% block page_title %}Подати заявку{% endblock %}
+{% block nc %}active{% endblock %}
+
+{% block content %}
+<div style="max-width:520px;">
+  <a href="{% url 'tasks:company_detail' company.pk %}" style="font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;margin-bottom:16px;">← Назад до компанії</a>
+
+  <!-- Company header -->
+  <div class="card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;">
+    <div style="width:44px;height:44px;border-radius:12px;background:{{ company.avatar_color }};display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:white;flex-shrink:0;">{{ company.name|first|upper }}</div>
+    <div>
+      <div style="font-size:14px;font-weight:700;">{{ company.name }}</div>
+      <div style="font-size:12px;color:var(--muted);">@{{ company.username }}</div>
+    </div>
+  </div>
+
+  <!-- Ticket form -->
+  <div class="card" style="border-top:3px solid var(--acc);">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
+      <span style="font-size:20px;">🎫</span>
+      <div>
+        <div style="font-size:14px;font-weight:700;">Квиток на вступ</div>
+        <div style="font-size:12px;color:var(--muted);">Заповни — власник компанії отримає твою заявку</div>
+      </div>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">{{ form.display_name.label }} *</label>
+        {{ form.display_name }}
+        {% if form.display_name.errors %}<div class="form-err">{{ form.display_name.errors.0 }}</div>{% endif %}
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">Як тебе будуть називати у компанії</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ form.tag.label }} *</label>
+        {{ form.tag }}
+        {% if form.tag.errors %}<div class="form-err">{{ form.tag.errors.0 }}</div>{% endif %}
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">Наприклад: Розробник, Дизайнер, Аналітик...</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ form.motivation.label }} *</label>
+        {{ form.motivation }}
+        {% if form.motivation.errors %}<div class="form-err">{{ form.motivation.errors.0 }}</div>{% endif %}
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">Опиши що хочеш робити і чим можеш бути корисним</div>
+      </div>
+
+      <div style="background:var(--elev);border:1px solid var(--brd);border-radius:var(--rs);padding:10px 12px;font-size:12px;color:var(--muted);margin-bottom:16px;">
+        📨 Після відправки власник <strong style="color:var(--txt2);">{{ company.owner.username }}</strong> отримає твій квиток і прийме рішення
+      </div>
+
+      <div style="display:flex;justify-content:space-between;">
+        <a href="{% url 'tasks:company_detail' company.pk %}" class="btn btn-ghost">Скасувати</a>
+        <button type="submit" class="btn btn-primary">🎫 Надіслати квиток</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

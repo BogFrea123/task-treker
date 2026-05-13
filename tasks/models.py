@@ -112,3 +112,59 @@ class Comment(models.Model):
                 return f'<span class="mention">@{u}</span>'
             return m.group(0)
         return re.sub(r'@(\w+)', repl, safe)
+
+
+# ── Companies ─────────────────────────────────────────
+
+class Company(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name='Назва компанії')
+    username = models.CharField(max_length=50, unique=True, verbose_name='Username (@handle)')
+    description = models.TextField(blank=True, verbose_name='Опис')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_companies', verbose_name='Власник')
+    members = models.ManyToManyField(User, through='CompanyMembership', through_fields=('company', 'user'), related_name='companies', blank=True)
+    avatar_color = models.CharField(max_length=7, default='#7c3aed')
+    is_open = models.BooleanField(default=True, verbose_name='Відкрита для вступу')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Компанія'
+        verbose_name_plural = 'Компанії'
+
+    def __str__(self):
+        return f'{self.name} (@{self.username})'
+
+    def get_absolute_url(self):
+        return reverse('tasks:company_detail', kwargs={'pk': self.pk})
+
+    def member_count(self):
+        return self.memberships.filter(status='approved').count()
+
+
+class CompanyMembership(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Очікує'),
+        ('approved', 'Прийнято'),
+        ('rejected', 'Відхилено'),
+    ]
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='memberships')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='memberships')
+    # Квиток
+    display_name = models.CharField(max_length=100, verbose_name="Ім'я у компанії")
+    tag = models.CharField(max_length=50, verbose_name='Тег / роль')
+    motivation = models.TextField(verbose_name='Що хочу робити')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_memberships')
+    reject_reason = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('company', 'user')
+        ordering = ['-created_at']
+        verbose_name = 'Заявка на вступ'
+        verbose_name_plural = 'Заявки на вступ'
+
+    def __str__(self):
+        return f'{self.user.username} → {self.company.name} [{self.status}]'

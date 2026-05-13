@@ -130,3 +130,48 @@ class RegisterForm(UserCreationForm):
         self.fields['username'].label = 'Логін'
         self.fields['password1'].label = 'Пароль'
         self.fields['password2'].label = 'Підтвердження'
+
+
+from .models import Company, CompanyMembership
+
+
+class CompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = ['name', 'username', 'description', 'avatar_color', 'is_open']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'cu-input', 'placeholder': 'Назва компанії'}),
+            'username': forms.TextInput(attrs={'class': 'cu-input', 'placeholder': 'company_handle'}),
+            'description': forms.Textarea(attrs={'class': 'cu-input', 'rows': 3, 'placeholder': 'Про що ваша компанія...'}),
+            'avatar_color': forms.TextInput(attrs={'type': 'color'}),
+            'is_open': forms.CheckboxInput(attrs={'class': 'cu-checkbox'}),
+        }
+
+    def clean_username(self):
+        u = self.cleaned_data['username'].strip().lower().replace(' ', '_')
+        return u
+
+
+class MembershipApplicationForm(forms.ModelForm):
+    class Meta:
+        model = CompanyMembership
+        fields = ['display_name', 'tag', 'motivation']
+        widgets = {
+            'display_name': forms.TextInput(attrs={'class': 'cu-input', 'placeholder': "Ваше ім'я у компанії"}),
+            'tag': forms.TextInput(attrs={'class': 'cu-input', 'placeholder': 'Розробник / Дизайнер / Менеджер...'}),
+            'motivation': forms.Textarea(attrs={'class': 'cu-input', 'rows': 4, 'placeholder': 'Опишіть чим хочете займатися...'}),
+        }
+        labels = {
+            'display_name': "Ім'я у компанії",
+            'tag': 'Ваша роль / тег',
+            'motivation': 'Що хочу робити',
+        }
+
+
+class MembershipReviewForm(forms.Form):
+    action = forms.ChoiceField(choices=[('approve', 'Прийняти'), ('reject', 'Відхилити')])
+    reject_reason = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'cu-input', 'rows': 2, 'placeholder': 'Причина відмови (необов\'язково)'}),
+        label='Причина відмови'
+    )

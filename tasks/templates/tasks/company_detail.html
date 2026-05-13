@@ -1,0 +1,186 @@
+{% extends 'tasks/base.html' %}
+{% block title %}{{ company.name }}{% endblock %}
+{% block page_title %}{{ company.name }}{% endblock %}
+{% block nc %}active{% endblock %}
+
+{% block topbar_actions %}
+{% if is_owner %}
+<a href="{% url 'tasks:company_update' company.pk %}" class="btn btn-ghost btn-sm">✎ Редагувати</a>
+{% endif %}
+{% if is_member and not is_owner %}
+<form method="post" action="{% url 'tasks:company_leave' company.pk %}" style="display:inline;">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Вийти з компанії?')">Вийти</button>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.member-card{background:var(--elev);border:1px solid var(--brd);border-radius:var(--rs);padding:12px;display:flex;align-items:center;gap:10px;}
+.ticket-card{background:var(--elev);border:1px solid var(--brd);border-radius:var(--r);padding:16px;}
+.ticket-card.pending{border-left:3px solid var(--amber);}
+.ticket-card.approved{border-left:3px solid var(--green);}
+.ticket-card.rejected{border-left:3px solid var(--red);opacity:.6;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 300px;gap:18px;">
+
+  <!-- Left -->
+  <div>
+    <!-- Company header -->
+    <div class="card" style="margin-bottom:14px;display:flex;gap:16px;align-items:flex-start;">
+      <div style="width:56px;height:56px;border-radius:14px;background:{{ company.avatar_color }};display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:white;flex-shrink:0;">{{ company.name|first|upper }}</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap;">
+          <h1 style="font-size:18px;font-weight:700;">{{ company.name }}</h1>
+          <span style="font-size:13px;color:var(--muted);">@{{ company.username }}</span>
+          {% if company.is_open %}
+          <span style="font-size:11px;color:#4ade80;background:var(--green-s);border:1px solid rgba(34,197,94,.2);padding:2px 8px;border-radius:20px;font-weight:600;">🟢 Відкрита</span>
+          {% else %}
+          <span style="font-size:11px;color:#f87171;background:var(--red-s);border:1px solid rgba(239,68,68,.2);padding:2px 8px;border-radius:20px;font-weight:600;">🔒 Закрита</span>
+          {% endif %}
+        </div>
+        {% if company.description %}
+        <div style="font-size:13.5px;color:var(--txt2);line-height:1.65;">{{ company.description }}</div>
+        {% endif %}
+        <div style="font-size:12px;color:var(--muted);margin-top:8px;">
+          Власник: <strong style="color:var(--txt2);">{{ company.owner.username }}</strong>
+          &nbsp;·&nbsp; Засновано {{ company.created_at|date:"d.m.Y" }}
+          &nbsp;·&nbsp; 👥 {{ members|length }} учасників
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending applications (owner only) -->
+    {% if is_owner and pending %}
+    <div class="card" style="margin-bottom:14px;padding:0;overflow:hidden;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;font-weight:600;">📬 Нові заявки</span>
+        <span style="background:var(--amber-s);color:#fbbf24;border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;">{{ pending|length }}</span>
+      </div>
+      <div style="padding:12px 16px;display:flex;flex-direction:column;gap:12px;">
+        {% for app in pending %}
+        <div class="ticket-card pending">
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+            <div class="av" style="width:32px;height:32px;font-size:13px;flex-shrink:0;">{{ app.user.username|first|upper }}</div>
+            <div style="flex:1;">
+              <div style="font-size:13.5px;font-weight:600;">{{ app.display_name }}</div>
+              <div style="font-size:12px;color:var(--muted);">@{{ app.user.username }} · <span style="color:#c4b5fd;">{{ app.tag }}</span></div>
+              <div style="font-size:12px;color:var(--txt2);margin-top:6px;line-height:1.6;">{{ app.motivation }}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;">{{ app.created_at|date:"d.m.Y H:i" }}</div>
+            </div>
+          </div>
+          <form method="post" action="{% url 'tasks:membership_review' app.pk %}" style="display:flex;gap:8px;align-items:flex-start;">
+            {% csrf_token %}
+            <textarea name="reject_reason" class="cu-input" rows="1" placeholder="Причина (при відмові)..." style="flex:1;font-size:12px;"></textarea>
+            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">✓ Прийняти</button>
+            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">✕ Відхилити</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Members list -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--brd);">
+        <span style="font-size:13px;font-weight:600;">👥 Учасники ({{ members|length }})</span>
+      </div>
+      {% if members %}
+      <div style="padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">
+        {% for m in members %}
+        <div class="member-card">
+          <div class="av" style="width:34px;height:34px;font-size:13px;flex-shrink:0;">{{ m.user.username|first|upper }}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;">{{ m.display_name }}</div>
+            <div style="font-size:11.5px;color:var(--muted);">@{{ m.user.username }}</div>
+            <div style="font-size:11px;color:#c4b5fd;margin-top:1px;">{{ m.tag }}</div>
+          </div>
+          {% if m.user == company.owner %}
+          <span style="font-size:10px;color:#c4b5fd;background:var(--acc-s);padding:2px 6px;border-radius:8px;">👑</span>
+          {% elif is_owner %}
+          <form method="post" action="{% url 'tasks:membership_kick' m.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost btn-xs" style="color:var(--muted);" onclick="return confirm('Видалити учасника?')" title="Видалити">✕</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty" style="padding:24px;"><p>Учасників поки немає</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right sidebar -->
+  <div style="display:flex;flex-direction:column;gap:12px;">
+
+    <!-- My status in this company -->
+    {% if user.is_authenticated %}
+    {% if my_application %}
+    <div class="card ticket-card {{ my_application.status }}">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Мій квиток</div>
+      <div style="font-size:13.5px;font-weight:600;margin-bottom:3px;">{{ my_application.display_name }}</div>
+      <div style="font-size:12px;color:#c4b5fd;margin-bottom:8px;">{{ my_application.tag }}</div>
+      <div style="font-size:12.5px;color:var(--txt2);margin-bottom:10px;line-height:1.6;">{{ my_application.motivation|truncatechars:100 }}</div>
+      {% if my_application.status == 'pending' %}
+      <div style="background:var(--amber-s);border:1px solid rgba(245,158,11,.2);border-radius:var(--rs);padding:8px 10px;font-size:12px;color:#fbbf24;">⏳ Заявка на розгляді</div>
+      {% elif my_application.status == 'approved' %}
+      <div style="background:var(--green-s);border:1px solid rgba(34,197,94,.2);border-radius:var(--rs);padding:8px 10px;font-size:12px;color:#4ade80;">✓ Ви учасник компанії</div>
+      {% elif my_application.status == 'rejected' %}
+      <div style="background:var(--red-s);border:1px solid rgba(239,68,68,.2);border-radius:var(--rs);padding:8px 10px;font-size:12px;color:#f87171;">✗ Заявку відхилено{% if my_application.reject_reason %}: {{ my_application.reject_reason }}{% endif %}</div>
+      {% endif %}
+    </div>
+    {% elif company.is_open and company.owner != user %}
+    <div class="card" style="background:var(--acc-s);border-color:rgba(139,92,246,.2);text-align:center;">
+      <div style="font-size:13px;font-weight:600;color:#c4b5fd;margin-bottom:6px;">Хочеш приєднатись?</div>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:12px;">Заповни квиток і власник розгляне заявку</div>
+      <a href="{% url 'tasks:company_apply' company.pk %}" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;">📝 Подати заявку</a>
+    </div>
+    {% elif not company.is_open %}
+    <div class="card" style="text-align:center;">
+      <div style="font-size:13px;color:var(--muted);">🔒 Компанія закрита для нових учасників</div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="card" style="background:var(--acc-s);border-color:rgba(139,92,246,.2);">
+      <div style="font-size:13px;font-weight:600;color:#c4b5fd;margin-bottom:6px;">Хочеш вступити?</div>
+      <a href="{% url 'tasks:register' %}" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;">Реєстрація →</a>
+    </div>
+    {% endif %}
+
+    <!-- Rejected applications (owner) -->
+    {% if is_owner %}
+    {% with rejected=company.memberships.all %}
+    {% if rejected %}
+    <div class="card">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Всі заявки</div>
+      {% for app in company.memberships.all %}
+      {% if app.status != 'approved' or app.user != company.owner %}
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--brd);">
+        <div class="av" style="width:22px;height:22px;font-size:9px;">{{ app.user.username|first|upper }}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ app.user.username }}</div>
+          <div style="font-size:11px;color:var(--muted);">{{ app.tag }}</div>
+        </div>
+        <span style="font-size:10.5px;font-weight:600;
+          {% if app.status == 'approved' %}color:#4ade80;
+          {% elif app.status == 'rejected' %}color:#f87171;
+          {% else %}color:#fbbf24;{% endif %}">
+          {{ app.get_status_display }}
+        </span>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

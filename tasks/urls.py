@@ -33,3 +33,16 @@ urlpatterns = [
 
     path('api/users/', views.UserSearchView.as_view(), name='user_search'),
 ]
+
+# Companies
+from django.urls import path
+urlpatterns += [
+    path('companies/', views.CompanyCatalogView.as_view(), name='company_catalog'),
+    path('companies/create/', views.CompanyCreateView.as_view(), name='company_create'),
+    path('companies/<int:pk>/', views.CompanyDetailView.as_view(), name='company_detail'),
+    path('companies/<int:pk>/edit/', views.CompanyUpdateView.as_view(), name='company_update'),
+    path('companies/<int:pk>/apply/', views.CompanyApplyView.as_view(), name='company_apply'),
+    path('companies/<int:pk>/leave/', views.MembershipLeaveView.as_view(), name='company_leave'),
+    path('membership/<int:pk>/review/', views.MembershipReviewView.as_view(), name='membership_review'),
+    path('membership/<int:pk>/kick/', views.MembershipKickView.as_view(), name='membership_kick'),
+]

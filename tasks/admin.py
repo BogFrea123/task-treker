@@ -23,3 +23,31 @@ class TaskAdmin(admin.ModelAdmin):
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('task', 'author', 'created_at')
+
+
+from .models import Company, CompanyMembership
+
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'username', 'owner', 'is_open', 'created_at')
+    search_fields = ('name', 'username')
+
+@admin.register(CompanyMembership)
+class CompanyMembershipAdmin(admin.ModelAdmin):
+    list_display = ('user', 'company', 'tag', 'status', 'created_at')
+    list_filter = ('status', 'company')
+    actions = ['approve', 'reject']
+
+    def approve(self, request, queryset):
+        from django.utils import timezone
+        queryset.filter(status='pending').update(
+            status='approved', reviewed_by=request.user, reviewed_at=timezone.now()
+        )
+    approve.short_description = 'Прийняти вибрані заявки'
+
+    def reject(self, request, queryset):
+        from django.utils import timezone
+        queryset.filter(status='pending').update(
+            status='rejected', reviewed_by=request.user, reviewed_at=timezone.now()
+        )
+    reject.short_description = 'Відхилити вибрані заявки'

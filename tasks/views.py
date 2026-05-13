@@ -71,6 +71,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'my_projects': Project.objects.filter(Q(owner=user)|Q(members=user)).distinct().annotate(task_count=Count('tasks'))[:5],
             'logged_hours': my.aggregate(t=Sum('logged_hours'))['t'] or 0,
             'mentioned_tasks': Task.objects.filter(mentioned_users=user).order_by('-created_at')[:4],
+            'my_companies_dash': Company.objects.filter(Q(owner=user) | Q(memberships__user=user, memberships__status='approved')).distinct()[:4],
+            'pending_apps_count': CompanyMembership.objects.filter(company__owner=user, status='pending').count(),
         })
         return ctx
 
@@ -382,3 +384,184 @@ class UserSearchView(LoginRequiredMixin, View):
         q = request.GET.get('q', '')
         users = list(User.objects.filter(username__icontains=q).values('id','username')[:10])
         return JsonResponse({'users': users})
+
+
+# ── Companies ──────────────────────────────────────────
+from .models import Company, CompanyMembership
+from .forms import CompanyForm, MembershipApplicationForm, MembershipReviewForm
+
+
+class CompanyCatalogView(TemplateView):
+    template_name = 'tasks/company_catalog.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        qs = Company.objects.all().annotate(
+            approved_count=Count('memberships', filter=Q(memberships__status='approved'))
+        )
+        search = self.request.GET.get('search', '')
+        if search:
+            qs = qs.filter(Q(name__icontains=search) | Q(username__icontains=search) | Q(description__icontains=search))
+        ctx['companies'] = qs.order_by('-created_at')
+        ctx['search'] = search
+        ctx['my_companies'] = []
+        ctx['my_applications'] = []
+        if self.request.user.is_authenticated:
+            ctx['my_companies'] = Company.objects.filter(
+                Q(owner=self.request.user) |
+                Q(memberships__user=self.request.user, memberships__status='approved')
+            ).distinct()
+            ctx['my_applications'] = CompanyMembership.objects.filter(
+                user=self.request.user
+            ).select_related('company').order_by('-created_at')
+        return ctx
+
+
+class CompanyDetailView(DetailView):
+    model = Company
+    template_name = 'tasks/company_detail.html'
+    context_object_name = 'company'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        company = self.object
+        user = self.request.user
+        ctx['members'] = company.memberships.filter(status='approved').select_related('user')
+        ctx['is_owner'] = user.is_authenticated and (company.owner == user or user.is_staff)
+        ctx['is_member'] = user.is_authenticated and company.memberships.filter(user=user, status='approved').exists()
+        ctx['my_application'] = None
+        if user.is_authenticated:
+            ctx['my_application'] = company.memberships.filter(user=user).first()
+        # Pending applications for owner/admin
+        if ctx['is_owner']:
+            ctx['pending'] = company.memberships.filter(status='pending').select_related('user')
+        return ctx
+
+
+class CompanyCreateView(LoginRequiredMixin, CreateView):
+    model = Company
+    form_class = CompanyForm
+    template_name = 'tasks/company_form.html'
+    success_url = reverse_lazy('tasks:company_catalog')
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        response = super().form_valid(form)
+        # Owner automatically becomes approved member
+        CompanyMembership.objects.create(
+            company=self.object,
+            user=self.request.user,
+            display_name=self.request.user.username,
+            tag='Засновник',
+            motivation='Створив компанію',
+            status='approved',
+        )
+        return response
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['page_title'] = 'Створити компанію'
+        return ctx
+
+
+class CompanyUpdateView(LoginRequiredMixin, UpdateView):
+    model = Company
+    form_class = CompanyForm
+    template_name = 'tasks/company_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if obj.owner != request.user and not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy('tasks:company_detail', kwargs={'pk': self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['page_title'] = 'Редагувати компанію'
+        return ctx
+
+
+class CompanyApplyView(LoginRequiredMixin, View):
+    """Відправити квиток (заявку) на вступ"""
+
+    def get(self, request, pk):
+        company = get_object_or_404(Company, pk=pk)
+        existing = CompanyMembership.objects.filter(company=company, user=request.user).first()
+        if existing:
+            return redirect('tasks:company_detail', pk=pk)
+        form = MembershipApplicationForm()
+        return render(request, 'tasks/company_apply.html', {'company': company, 'form': form})
+
+    def post(self, request, pk):
+        company = get_object_or_404(Company, pk=pk)
+        if company.owner == request.user:
+            return redirect('tasks:company_detail', pk=pk)
+        existing = CompanyMembership.objects.filter(company=company, user=request.user).first()
+        if existing:
+            return redirect('tasks:company_detail', pk=pk)
+        form = MembershipApplicationForm(request.POST)
+        if form.is_valid():
+            m = form.save(commit=False)
+            m.company = company
+            m.user = request.user
+            m.save()
+            return redirect('tasks:company_detail', pk=pk)
+        return render(request, 'tasks/company_apply.html', {'company': company, 'form': form})
+
+
+class MembershipReviewView(LoginRequiredMixin, View):
+    """Власник або адмін приймає / відхиляє заявку"""
+
+    def post(self, request, pk):
+        membership = get_object_or_404(CompanyMembership, pk=pk)
+        company = membership.company
+        if company.owner != request.user and not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        action = request.POST.get('action')
+        from django.utils import timezone
+        if action == 'approve':
+            membership.status = 'approved'
+            membership.reviewed_by = request.user
+            membership.reviewed_at = timezone.now()
+            membership.save()
+        elif action == 'reject':
+            membership.status = 'rejected'
+            membership.reject_reason = request.POST.get('reject_reason', '')
+            membership.reviewed_by = request.user
+            membership.reviewed_at = timezone.now()
+            membership.save()
+        return redirect('tasks:company_detail', pk=company.pk)
+
+
+class MembershipKickView(LoginRequiredMixin, View):
+    """Видалити учасника з компанії"""
+
+    def post(self, request, pk):
+        membership = get_object_or_404(CompanyMembership, pk=pk)
+        company = membership.company
+        if company.owner != request.user and not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        if membership.user != company.owner:
+            membership.delete()
+        return redirect('tasks:company_detail', pk=company.pk)
+
+
+class MembershipLeaveView(LoginRequiredMixin, View):
+    """Вийти з компанії"""
+
+    def post(self, request, pk):
+        company = get_object_or_404(Company, pk=pk)
+        if company.owner == request.user:
+            return redirect('tasks:company_detail', pk=pk)
+        CompanyMembership.objects.filter(company=company, user=request.user).delete()
+        return redirect('tasks:company_catalog')
+
+
+# Helper for render shortcut
+from django.shortcuts import render
